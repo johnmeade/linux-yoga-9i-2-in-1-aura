@@ -70,3 +70,7 @@ sudo tar xvzf alsa-ucm-conf.tar.gz -C /usr/share/alsa --strip-components=1 --wil
 ```
 
 Reboot. The internal mic and headphone jack should be fixed! Internal speakers not working yet.
+
+# Battery Life
+
+![battery plot](https://github.com/johnmeade/linux-yoga-9i-2-in-1-aura/blob/main/yoga-9i-2-in-1-battery-plot.png?raw=true)

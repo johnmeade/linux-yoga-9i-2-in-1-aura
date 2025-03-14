@@ -39,6 +39,27 @@ Most testing done on Fedora 41. I recommend using the latest stable Fedora, or a
 * kernel versions below 6.12
 
 
+# Tablet-mode Quirk
+
+The accelerometer is used to disable the keyboard / trackpad when rotating the screen into "tent" mode.
+But since the accelerometer is not detected, this trigger is not going to work.
+Luckily, there is another triger for when the laptop is in "tablet" mode, fully rotated, which does work to disable the keyboard/trackpad.
+However, it doesn't enable input when retruning the laptop to tent/laptop modes, so you have to fully close the laptop (triggering suspend as a side effect) to enable input again.
+So, to use tent mode with key input disabled, you just have to enter tablet mode first.
+
+### Workaround
+
+The working sensors are magnetic, and can be triggered with the pen/stylus.
+This can be decently consistent if you play with it for a while, but you'll probably trigger the "suspend" trigger while trying and your laptop will go to sleep.
+
+* Disabling keyboard / trackpad
+  * hold the Lenovo Pen with pointy end facing to the right (towards the Enter/Backspace key), and with the "Lenovo" logo facing **up**
+  * tap the "eraser" end just to the left of the laptop, with a shallow angle, so the side of the pen touches the laptop between tilde/backtick and Tab
+* Enabling keyboard / trackpad
+  * hold the Lenovo Pen with pointy end facing to the right (towards the Enter/Backspace key), and with the "Lenovo" logo facing **down**
+  * tap the "eraser" end just to the left of the laptop, with a shallow angle, so the side of the pen touches the laptop between tilde/backtick and Tab
+
+
 # Battery Life
 
 ![battery plot](https://github.com/johnmeade/linux-yoga-9i-2-in-1-aura/blob/main/yoga-9i-2-in-1-battery-plot.png?raw=true)

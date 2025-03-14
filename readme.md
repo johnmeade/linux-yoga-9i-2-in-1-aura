@@ -20,7 +20,7 @@ Most testing done on Fedora 41. I recommend using the latest stable Fedora, or a
 
 ✅ Working with newer kernel / firmware versions (or see "Troubleshooting Audio" section below):
 * internal speaker output
-  * ⚠️ On Fedora 41, this currently requires the latest [testing](https://bodhi.fedoraproject.org/updates/FEDORA-2025-7f56eb37a0) package for linux firmware, which should be stable by April 2025.
+  * ⚠️ On Fedora 41, this currently requires the latest [testing](https://bodhi.fedoraproject.org/updates/FEDORA-2025-7f56eb37a0) package for linux firmware, which should be stable by April 2025. This specific linked advisory **breaks bluetooth** but hopefully this will be fixed soon.
 * internal microphone input
 * headphone jack output
 
@@ -130,6 +130,8 @@ sudo systemctl start disable-elan-wakeup.service
 If you want to try fixing audio on outdated systems, you may try these steps. This is not an exhaustive list.
 
 ## Update Linux Firmware
+
+⚠️ As of March 14, 2025, bluetooth may be broken on some newer firmware releases. Hopefully this will be fixed soon.
 
 If you can install the latest firmware, this is likely to fix some or all issues:
 

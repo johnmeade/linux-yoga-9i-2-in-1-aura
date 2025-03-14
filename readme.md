@@ -10,6 +10,7 @@ Most testing done on Fedora 41. I recommend using the latest stable Fedora, or a
 * "basic" tablet mode switch (for disabling keyboard / touchpad in tablet mode)
   * only works when fully rotated flat
   * requires fully closing the laptop to re-enable keyboard / touchpad
+  * see "Tablet-mode Quirk" section below
 
 ✅ Working on 6.14 (and latest stable Fedora, on kernel 6.13, via driver backport), not working on 6.12 or earlier:
 * touchscreen input
@@ -22,6 +23,10 @@ Most testing done on Fedora 41. I recommend using the latest stable Fedora, or a
 * internal microphone input
 * headphone jack output
 
+✅ Working but may require manual fixes:
+* suspend
+  * some distros may wake immediately due to trackpad wake events, easy to fix, see "Troubleshooting Suspend" section below
+
 ⚠️ Partially working
 * "special" keys on keyboard
   * top star (with an S in it) maps to a standard "Favourites" key
@@ -32,11 +37,17 @@ Most testing done on Fedora 41. I recommend using the latest stable Fedora, or a
 
 ❌ Not working:
 * accelerometer (for disabling keyboard / touchpad in "tent" mode, >180deg rotation)
+  * see "Tablet-mode Quirk" section below
 
 ❓ Untested:
 * headphone jack mic input (probably fine?)
 * touchscreen support with kernel 6.13 on other distros
 * kernel versions below 6.12
+
+
+# Wakeup Slowdown Quirk
+
+When the laptop has been in suspend for a long time, it may be a bit slow / laggy for 30 sec - 1 min after waking up. So far, I've never needed to reboot to fix this. Perhaps it will be addressed in future linux updates.
 
 
 # Tablet-mode Quirk

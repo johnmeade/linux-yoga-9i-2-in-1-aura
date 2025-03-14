@@ -44,6 +44,54 @@ Most testing done on Fedora 41. I recommend using the latest stable Fedora, or a
 ![battery plot](https://github.com/johnmeade/linux-yoga-9i-2-in-1-aura/blob/main/yoga-9i-2-in-1-battery-plot.png?raw=true)
 
 
+# Troubleshooting Suspend
+
+Some distros may immediately wake from suspend. One cause is erroneous wake signals from the touchpad.
+
+If you suspect you have this issue, try suspending via your desktop environment or systemctl suspend, and wait a few seconds. If suspend fails / your login screen pops back up without any input, then run this:
+
+```sh
+sudo cat /sys/kernel/debug/wakeup_sources
+```
+
+and see if there is a "ELAN" device with a bunch of numbers. For example, the problem device may look like `i2c-ELAN06FA:00`. To check if it's the source  of your problem, run
+
+```sh
+echo "disabled" | sudo tee /sys/bus/i2c/devices/i2c-ELAN06FA:00/power/wakeup
+```
+
+and try suspending again. If your laptop suspends properly, then you just need to run this every boot to fix the issue permanently.
+
+For systemd (Ubuntu, Fedora, many others), you can use a service file to do this:
+
+```sh
+sudo nano /etc/systemd/system/disable-elan-wakeup.service
+```
+
+add these lines:
+
+```ini
+[Unit]
+Description=Disable wakeup for ELAN trackpad
+After=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c 'echo "disabled" > /sys/bus/i2c/devices/i2c-ELAN06FA:00/power/wakeup'
+RemainAfterExit=true
+
+[Install]
+WantedBy=multi-user.target
+```
+
+then enable the service
+
+```sh
+sudo systemctl daemon-reload
+sudo systemctl enable disable-elan-wakeup.service
+sudo systemctl start disable-elan-wakeup.service
+```
+
 # Troubleshooting Audio
 
 If you want to try fixing audio on outdated systems, you may try these steps. This is not an exhaustive list.

@@ -12,7 +12,7 @@ Most testing done on Fedora 41. I recommend using the latest stable Fedora, or a
   * requires fully closing the laptop to re-enable keyboard / touchpad
   * see "Tablet-mode Quirk" section below
 
-✅ Working on 6.14 (and latest stable Fedora, on kernel 6.13, via driver backport), not working on 6.12 or earlier:
+✅ Working on 6.14 (and some 6.13, via driver backport, eg Fedora), not working on 6.12 or earlier:
 * touchscreen input
 * pen/stylus - touch input
 * pen/stylus - pressure
@@ -20,6 +20,7 @@ Most testing done on Fedora 41. I recommend using the latest stable Fedora, or a
 
 ✅ Working with newer kernel / firmware versions (or see "Troubleshooting Audio" section below):
 * internal speaker output
+  * ⚠️ On Fedora 41, this currently requires the latest [testing](https://bodhi.fedoraproject.org/updates/FEDORA-2025-7f56eb37a0) package for linux firmware, which should be stable by April 2025.
 * internal microphone input
 * headphone jack output
 
@@ -54,7 +55,7 @@ When the laptop has been in suspend for a long time, it may be a bit slow / lagg
 
 The accelerometer is used to disable the keyboard / trackpad when rotating the screen into "tent" mode.
 But since the accelerometer is not detected, this trigger is not going to work.
-Luckily, there is another triger for when the laptop is in "tablet" mode, fully rotated, which does work to disable the keyboard/trackpad.
+Luckily, there is another trigger for when the laptop is in "tablet" mode, fully rotated, which does work to disable the keyboard/trackpad.
 However, it doesn't enable input when retruning the laptop to tent/laptop modes, so you have to fully close the laptop (triggering suspend as a side effect) to enable input again.
 So, to use tent mode with key input disabled, you just have to enter tablet mode first.
 

@@ -20,7 +20,7 @@ Most testing done on Fedora 41. I recommend using the latest stable Fedora, or a
 
 ✅ Working with newer kernel / firmware versions (or see "Troubleshooting Audio" section below):
 * internal speaker output
-  * ⚠️ On Fedora 41, this currently requires the latest [testing](https://bodhi.fedoraproject.org/updates/FEDORA-2025-7f56eb37a0) package for linux firmware, which should be stable by April 2025. This specific linked advisory **breaks bluetooth** but hopefully this will be fixed soon.
+  * ⚠️ On Fedora 41, this currently requires the latest [testing](https://bodhi.fedoraproject.org/updates/FEDORA-2025-7f56eb37a0) package for linux firmware, which should be stable by April 2025. This specific linked advisory **breaks bluetooth**, but it's easy to fix, see "Bluetooth Fix" below until this is fixed in stable.
 * internal microphone input
 * headphone jack output
 
@@ -44,6 +44,47 @@ Most testing done on Fedora 41. I recommend using the latest stable Fedora, or a
 * headphone jack mic input (probably fine?)
 * touchscreen support with kernel 6.13 on other distros
 * kernel versions below 6.12
+
+
+# Bluetooth Fix
+
+As of March 15 2025, Fedora stable firmware breaks bluetooth. Other distros running newer versions of `linux-firmware` will probably have the same issue. Run this:
+
+```sh
+sudo dmesg | grep -i bluetooth
+```
+
+If you have a line like this:
+
+```
+[    3.646023] Bluetooth: hci0: Failed to load Intel firmware file intel/ibt-0190-0291-pci.sfi (-2)
+```
+
+Then follow the steps below.
+
+The issue can be fixed by symlinking some firmware files:
+
+```sh
+sudo ln -s /lib/firmware/intel/ibt-0190-0291.sfi /lib/firmware/intel/ibt-0190-0291-pci.sfi
+sudo ln -s /lib/firmware/intel/ibt-0190-0291.ddc /lib/firmware/intel/ibt-0190-0291-pci.ddc
+```
+
+Reboot. It might also require:
+
+```sh
+sudo dracut --force
+# (note: your distro might use `initramfs`)
+```
+
+before reboot.
+If that doesn't work, update firmware with upstream and retry,
+
+```sh
+mkdir bt-fw-backup
+sudo mv /lib/firmware/intel/ibt-0190-* bt-fw-backup
+git clone https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git
+sudo cp linux-firmware/intel/ibt-0190-* /lib/firmware/intel/
+```
 
 
 # Wakeup Slowdown Quirk
@@ -131,7 +172,8 @@ If you want to try fixing audio on outdated systems, you may try these steps. Th
 
 ## Update Linux Firmware
 
-⚠️ As of March 14, 2025, bluetooth may be broken on some newer firmware releases. Hopefully this will be fixed soon.
+⚠️ As of March 14, 2025, bluetooth may be broken on some newer firmware releases.
+See the "Bluetooth Fix" section for a fix.
 
 If you can install the latest firmware, this is likely to fix some or all issues:
 

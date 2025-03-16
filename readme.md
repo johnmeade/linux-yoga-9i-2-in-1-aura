@@ -1,9 +1,13 @@
+All major functionality is now working in recent versions of kernel & firmware.
+Distros that favor older versions of these for general stability may take a few more months to receieve the necessary changes.
+I recommend using the latest stable Fedora as a starting point.
+For Fedora, simply install all system updates, reboot, check if Bluetooth works, and follow the "Bluetooth Fix" section below if needed.
+
 # Feature Support
 
-Most testing done on Fedora 41. I recommend using the latest stable Fedora, or a distro with a recent 6.14 kernel.
+Most testing below was done on Fedora 41.
 
 ✅ Should work on kernel 6.12+, earlier verisons unknown:
-* bluetooth
 * wifi
 * fingerprint reader
 * ambient light sensor
@@ -14,17 +18,16 @@ Most testing done on Fedora 41. I recommend using the latest stable Fedora, or a
 
 ✅ Working on 6.14 (and some 6.13, via driver backport, eg Fedora), not working on 6.12 or earlier:
 * touchscreen input
-* pen/stylus - touch input
-* pen/stylus - pressure
-* pen/stylus - tilt
+* pen/stylus - touch input, pressure, tilt, side buttons
 
 ✅ Working with newer kernel / firmware versions (or see "Troubleshooting Audio" section below):
 * internal speaker output
-  * ⚠️ On Fedora 41, this currently requires the latest [testing](https://bodhi.fedoraproject.org/updates/FEDORA-2025-7f56eb37a0) package for linux firmware, which should be stable by April 2025. This specific linked advisory **breaks bluetooth**, but it's easy to fix, see "Bluetooth Fix" below until this is fixed in stable.
 * internal microphone input
 * headphone jack output
 
 ✅ Working but may require manual fixes:
+* bluetooth
+  * firmware is temporarily misconfigured upstream for some Lunar Lake chipsets, see "Bluetooth Fix" below if you have an issue.
 * suspend
   * some distros may wake immediately due to trackpad wake events, easy to fix, see "Troubleshooting Suspend" section below
 
@@ -115,6 +118,8 @@ This can be decently consistent if you play with it for a while, but you'll prob
 
 # Battery Life
 
+
+Using "Balanced" power mode (Gnome 47 / Fedora 41)
 ![battery plot](https://github.com/johnmeade/linux-yoga-9i-2-in-1-aura/blob/main/yoga-9i-2-in-1-battery-plot.png?raw=true)
 
 

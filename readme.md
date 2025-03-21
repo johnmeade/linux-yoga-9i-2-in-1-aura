@@ -34,8 +34,8 @@ Most testing below was done on Fedora 41.
 ⚠️ Partially working
 * "special" keys on keyboard
   * top star (with an S in it) maps to a standard "Favourites" key
+  * the power mode key (top right below "delete") works as expected in Fedora -- this may be distro / desktop dependent
   * the audio settings key on the right can be used / remapped out-of-the-box (keycode 149 "KEY_PROG2")
-  * the "dial meter" key (top on the right) does not emit a keycode / event
   * several other keys emit keycode 240 "KEY_UNKNOWN" and may not be possible to use: "mode" key (Fn+F9), F11 alternate (Fn+F11), eyeball, hollow star
   * all other keys work as expected
 

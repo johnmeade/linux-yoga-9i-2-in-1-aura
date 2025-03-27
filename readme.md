@@ -43,6 +43,10 @@ Most testing below was done on Fedora 41.
 * accelerometer (for disabling keyboard / touchpad in "tent" mode, >180deg rotation)
   * see "Tablet-mode Quirk" section below
 
+❗ Other issues:
+* When waking from a long suspend, sometimes there is temporary lag for around 1 minute
+* There seems to be a very rare full system freeze issue that can happen, which requires a hard reboot.
+
 ❓ Untested:
 * headphone jack mic input (probably fine?)
 * touchscreen support with kernel 6.13 on other distros
@@ -88,11 +92,6 @@ sudo mv /lib/firmware/intel/ibt-0190-* bt-fw-backup
 git clone https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git
 sudo cp linux-firmware/intel/ibt-0190-* /lib/firmware/intel/
 ```
-
-
-# Wakeup Slowdown Quirk
-
-When the laptop has been in suspend for a long time, it may be a bit slow / laggy for 30 sec - 1 min after waking up. So far, I've never needed to reboot to fix this. Perhaps it will be addressed in future linux updates.
 
 
 # Tablet-mode Quirk

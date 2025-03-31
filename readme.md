@@ -36,7 +36,8 @@ Most testing below was done on Fedora 41.
   * top star (with an S in it) maps to a standard "Favourites" key
   * the power mode key (top right below "delete") works as expected in Fedora -- this may be distro / desktop dependent
   * the audio settings key on the right can be used / remapped out-of-the-box (keycode 149 "KEY_PROG2")
-  * several other keys emit keycode 240 "KEY_UNKNOWN" and may not be possible to use: "mode" key (Fn+F9), F11 alternate (Fn+F11), eyeball, hollow star
+  * several other keys emit keycode 240 "KEY_UNKNOWN" ("mode" key Fn+F9, Fn+F11, and the eyeball & hollow star on the bottom right)
+    * these can only partially be used, see "Unknown Key Remapping" below:
   * all other keys work as expected
 
 ❌ Not working:
@@ -92,6 +93,36 @@ sudo mv /lib/firmware/intel/ibt-0190-* bt-fw-backup
 git clone https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git
 sudo cp linux-firmware/intel/ibt-0190-* /lib/firmware/intel/
 ```
+
+
+# Unknown Key Remapping
+
+The [Input Remapper](https://github.com/sezanzeb/input-remapper) app can convert the "unknown" key events into other key events / macros. Limitations:
+
+* All 4 "unknown" keys will do the same thing, they can't be remapped independently
+* The special key events emitted by the Lenovo drivers do not have a "held" state (they instantly trigger a "key up" event after the initial "key down"), so you can't exactly simulate holding a modifier key like `Ctrl` (but there is a workaround below).
+
+After installing, click the "Ideapad Extra Buttons" section, add a preset, click "record", record the key stroke, and then enter a macro in the field to the right.
+
+### Example 1
+
+Hold down Ctrl for 1 second when an unknown key is pressed -- this gives you a moment to use it as a normal modifier,
+
+```js
+key_down(KEY_LEFTCTRL).wait(1000).key_up(KEY_LEFTCTRL)
+```
+
+### Example 2
+
+Remap the unknown keys to `XF86Launch1` so it can then be bound as usual from your desktop environment settings,
+
+```js
+key(XF86Launch1)
+```
+
+Now, this key should work as a generic extra key that you can bind commands to (confirmed to work in Gnome). There are many other random key names that you can bind if this doesn't work.
+
+Or of course, or you just can map that one key to a macro / sequence of keys, and use that same sequence as a key shortcut in your desktop settings.
 
 
 # Tablet-mode Quirk

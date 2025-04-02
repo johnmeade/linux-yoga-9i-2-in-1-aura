@@ -81,7 +81,7 @@ john ALL=(ALL) NOPASSWD: /opt/tablet-mode.on.sh
 
 $ cat ~/.local/share/applications/tablet-mode-on.desktop
 [Desktop Entry]
-Name=Tablet Mode On
+Name=Enable Tablet Mode
 Exec=sudo /opt/tablet-mode.on.sh
 Icon=preferences-desktop
 Terminal=false
@@ -90,7 +90,7 @@ Categories=Utility;
 
 $ cat ~/.local/share/applications/tablet-mode-off.desktop
 [Desktop Entry]
-Name=Tablet Mode Off
+Name=Disable Tablet Mode
 Exec=sudo /opt/tablet-mode.off.sh
 Icon=preferences-desktop
 Terminal=false
@@ -100,17 +100,25 @@ Categories=Utility;
 
 If you want some decent icons for your shortcuts, you can use these:
 
-![Disable Tablet Mode Icon](tablet-mode-disable.png)
-![Enable Tablet Mode Icon](tablet-mode-enable.png)
+<img src="https://github.com/johnmeade/linux-yoga-9i-2-in-1-aura/blob/main/tablet-mode-disable.png?raw=true" width="64">
+
+<img src="https://github.com/johnmeade/linux-yoga-9i-2-in-1-aura/blob/main/tablet-mode-enable.png?raw=true" width="64">
+
+![Tablet Mode Icons in Gnome](tablet-mode-gnome-dock-eg.png)
+
+Flaticon references:
+* [keyboard](https://www.flaticon.com/free-icon/keyboard-and-mouse_5033534?term=keyboard&page=1&position=95&related_id=5033534)
+* [check](https://www.flaticon.com/free-icon/accept_4315445?term=check&page=1&position=12&related_id=4315445)
+* [cross](https://www.flaticon.com/free-icon/delete_16206622?term=x&page=1&position=12&related_id=16206622)
 
 ```ini
 [Desktop Entry]
-Name=Tablet Mode Off
+Name=Disable Tablet Mode
 Icon=/path/to/tablet-mode-disable.png
 ...
 
 [Desktop Entry]
-Name=Tablet Mode On
+Name=Enable Tablet Mode
 Icon=/path/to/tablet-mode-enable.png
 ...
 ```

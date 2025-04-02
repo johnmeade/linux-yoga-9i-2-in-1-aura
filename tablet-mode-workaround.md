@@ -97,3 +97,20 @@ Terminal=false
 Type=Application
 Categories=Utility;
 ```
+
+If you want some decent icons for your shortcuts, you can use these:
+
+![Disable Tablet Mode Icon](tablet-mode-disable.png)
+![Enable Tablet Mode Icon](tablet-mode-enable.png)
+
+```ini
+[Desktop Entry]
+Name=Tablet Mode Off
+Icon=/path/to/tablet-mode-disable.png
+...
+
+[Desktop Entry]
+Name=Tablet Mode On
+Icon=/path/to/tablet-mode-enable.png
+...
+```

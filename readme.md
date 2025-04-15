@@ -1,7 +1,26 @@
-All major functionality is now working in recent versions of kernel & firmware.
+All major functionality is working in recent versions of kernel & firmware, with some simple config updates.
 Distros that favor older versions of these for general stability may take a few more months to receieve the necessary changes.
+
 I recommend using the latest stable Fedora as a starting point.
-For Fedora, simply install all system updates, reboot, check if Bluetooth works, and follow the "Bluetooth Fix" section below if needed.
+I haven't done a fresh install to fully test this, but I believe the only issues you might face in Fedora are bluetooth and audio related.
+
+If Bluetooth doesn't work, follow the "Bluetooth Fix" section below (create a couple symlinks).
+
+If audio doesn't work, follow the Alsa UCM step in the "Troubleshooting Audio" section below (download some config files and reset alsa).
+
+If you have any issues, the best place to ask might be on [this thread](https://forums.lenovo.com/t5/Other-Linux-Discussions/Linux-Support-Yoga-9i-2-in-1-Aura/m-p/5363703) on the Lenovo forums.
+
+Feel free to open issues or PRs if you have something to ask or share!
+
+# General Stability
+
+There is currently a power management bug that can sometimes cause the CPU cores to get "stuck" in their low-power state (400MHz) for about 1 minute when waking from suspend. This rarely happens to me, and I've never seen this issue persist longer than 1 minute, but [reports](https://www.phoronix.com/review/lunarlake-xe2-windows-linux-2025) from similar models (like the X1 Carbon Aura) suggest it's possible they remain stuck unless you switch to the "Performance" power mode (ie in Gnome settings).
+
+There is also a rare full system freeze issue that requires reboot, perhaps most likely to occur just after wakeup, but the cause of this is unknown. Perhaps it's related to the issue above. I've seen this twice.
+
+A similar rare bug is a full system freeze followed by a forced reboot shortly after. I've experienced this twice, both times while playing a [game](https://www.cavesofqud.com) with very simple graphics. I'm not sure of the cause for this one either, perhaps the CPU/GPU load is related.
+
+So far, I've never had a crash occur with my typical workload (fairly light apps like a browser, vscode, slack, spotify, etc).
 
 # Feature Support
 
@@ -20,12 +39,11 @@ Most testing below was done on Fedora 41.
 * touchscreen input
 * pen/stylus - touch input, pressure, tilt, side buttons
 
-✅ Working with newer kernel / firmware versions (or see "Troubleshooting Audio" section below):
-* internal speaker output
-* internal microphone input
-* headphone jack output
-
 ✅ Working but may require manual fixes:
+* audio (may work with newer firmware / kernel, or require a simple config refresh. See "Troubleshooting Audio" section below):
+  * internal speaker output
+  * internal microphone input
+  * headphone jack output
 * bluetooth
   * firmware is temporarily misconfigured upstream for some Lunar Lake chipsets, see "Bluetooth Fix" below if you have an issue.
 * suspend
@@ -188,7 +206,9 @@ If you want to try fixing audio on outdated systems, you may try these steps. Th
 ⚠️ As of March 14, 2025, bluetooth may be broken on some newer firmware releases.
 See the "Bluetooth Fix" section for a fix.
 
-If you can install the latest firmware, this is likely to fix some or all issues:
+If you have a version of linux firmware newer than March 14, 2025, you should skip this and try the Alsa UCM and sof firmware steps below.
+
+Updating from an old linux firmware version is likely to help fix audio issues.
 
 https://gitlab.com/kernel-firmware/linux-firmware
 
@@ -211,9 +231,9 @@ curl -L -o alsa-ucm-conf.tar.gz https://github.com/alsa-project/alsa-ucm-conf/ar
 sudo tar xvzf alsa-ucm-conf.tar.gz -C /usr/share/alsa --strip-components=1 --wildcards "*/ucm" "*/ucm2"
 
 # ensure config is re-generated
-systemctl stop alsa-state
-rm /var/lib/alsa/asound.state
-systemctl start alsa-state
+sudo systemctl stop alsa-state
+sudo rm /var/lib/alsa/asound.state
+sudo systemctl start alsa-state
 ```
 
 Reboot and check if any sound issues have been resolved.

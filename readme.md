@@ -48,13 +48,14 @@ Most testing below was done on Fedora 41.
   * firmware is temporarily misconfigured upstream for some Lunar Lake chipsets, see "Bluetooth Fix" below if you have an issue.
 * suspend
   * some distros may wake immediately due to trackpad wake events, easy to fix, see "Troubleshooting Suspend" section below
+* the copilot key is recognised as a bizzare key macro, but can be remapped (for example, to Right Ctrl) using the Input Remapper software (see "Key Remapping" below) on 6.14 (remapping untested on 6.13 or earlier).
 
 ⚠️ Partially working
 * "special" keys on keyboard
   * the power mode key (top right below "delete") works as expected in Fedora -- this may be distro / desktop dependent
   * the audio settings key on the right can be used / remapped out-of-the-box (keycode 149 "KEY_PROG2")
   * several other keys emit keycode 240 "KEY_UNKNOWN" ("mode" key Fn+F9, Fn+F11, and the eyeball & hollow star on the bottom right)
-    * these can only partially be used, see "Unknown Key Remapping" below:
+    * these can only partially be used, see "Key Remapping" below
   * all other keys work as expected
 
 ❌ Not working:
@@ -112,7 +113,7 @@ sudo cp linux-firmware/intel/ibt-0190-* /lib/firmware/intel/
 ```
 
 
-# Unknown Key Remapping
+# Key Remapping
 
 The [Input Remapper](https://github.com/sezanzeb/input-remapper) app can convert the "unknown" key events into other key events / macros. Limitations:
 
@@ -140,6 +141,10 @@ key(XF86Launch1)
 Now, this key should work as a generic extra key that you can bind commands to (confirmed to work in Gnome). There are many other random key names that you can bind if this doesn't work.
 
 Or of course, or you just can map that one key to a macro / sequence of keys, and use that same sequence as a key shortcut in your desktop settings.
+
+My current setup:
+* copilot key remapped to `KEY_RIGHTCTRL` (works as a normal key, ie with distinct keyup / keydown events)
+* unknown keys remapped to `XF86Launch1`
 
 
 # Battery Life

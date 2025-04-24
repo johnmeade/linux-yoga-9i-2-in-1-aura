@@ -142,9 +142,22 @@ Now, this key should work as a generic extra key that you can bind commands to (
 
 Or of course, or you just can map that one key to a macro / sequence of keys, and use that same sequence as a key shortcut in your desktop settings.
 
-My current setup:
+### Example 3
+
+You can remap buttons on the stylus / pen too. To do this, select the "Wacom [...] Pen" device, add an input, and click record. If the pen is far from the screen, the pen buttons will not emit any events. Make sure the pen is hovering above the screen, controlling the mouse, before pressing the button you want to remap while recording. The remapper will capture several events related to tilt and movement, so you have to click "advanced" and manually remove those entries. You should end up with a single input event named "Button STYLUS" or similar. Now you can remap this to whatever you want, for example Ctrl+Space,
+
+```js
+modify(KEY_LEFTCTRL, key(KEY_SPACE))
+```
+
+(This was useful for the RNote app, which apparently doesn't handle this "Button STYLUS" event natively. The other button works as expected in RNote though. This is likely app-dependent, so it's nice to know these can simply be remapped.)
+
+### Suggested setup
+
 * copilot key remapped to `KEY_RIGHTCTRL` (works as a normal key, ie with distinct keyup / keydown events)
-* unknown keys remapped to `XF86Launch1`
+* unknown keys remapped to `XF86Launch1` as a generic app launcher
+* favourites key (star with "S" in it at top) remapped to `XF86Launch3` as a generic app launcher (note that the "audio settings" key is already mapped to Launch 2)
+* pen buttons remapped as needed for your drawing software
 
 
 # Battery Life

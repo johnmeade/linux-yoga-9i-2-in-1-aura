@@ -270,3 +270,13 @@ sudo ./install.sh
 ```
 
 Reboot and check if any sound issues have been resolved.
+
+# Misc
+
+(April 24, 2025) There is currently a strange bug that crashes Gnome entirely, sending you back to the login screen. It seems to happen when:
+* you are in tablet mode with the on-screen keyboard open
+* you click a button on certain GTK dialog boxes, like a "save" dialog box
+
+For example, saving a file within RNote with the on-screen keyboard open will likely cause a crash (your file should be saved correctly though).
+
+This is a complex interaction between Mutter/Wayland and Gnome, *possibly* related to GTK or other apps.

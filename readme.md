@@ -166,6 +166,9 @@ modify(KEY_LEFTCTRL, key(KEY_SPACE))
 Using "Balanced" power mode (Gnome 47 / Fedora 41)
 ![battery plot](yoga-9i-2-in-1-battery-plot.png)
 
+Suspend test (Fedora 42, kernel 6.14.6)
+![suspend battery plot](yoga-9i-2-in-1-suspend-battery-plot.png)
+
 
 # Troubleshooting Suspend
 

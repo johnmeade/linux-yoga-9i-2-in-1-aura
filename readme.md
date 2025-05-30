@@ -274,6 +274,25 @@ sudo ./install.sh
 
 Reboot and check if any sound issues have been resolved.
 
+## Audio on Ubuntu 24.04
+
+First follow the previous steps to install latest `alsa-ucm` and `sof` firmware and then modify the following file:
+
+```nano /usr/share/alsa/ucm2/sof-soundwire/sof-soundwire.conf```
+and replace in the first line `Syntax 7` with `Syntax 6`
+
+This is necessary because the alsaucm binaries in Ubuntu 24.04 don't support the latest syntax.
+You can confirm that it is working by running `alsaucm listcards`, it should produce the following result:
+```sh
+  0: hw:0
+    LENOVO-83LC-Yoga92_in_114ILL10-LNVNB161216
+```
+
+If you still encounter problems please run `alsa-info` and compare your output to the following one: 
+
+http://alsa-project.org/db/?f=00aaa2b0024b2e1a9641d978f526ff44576577b6
+
+
 # Misc
 
 (April 24, 2025) There is currently a strange bug that crashes Gnome entirely, sending you back to the login screen. It seems to happen when:

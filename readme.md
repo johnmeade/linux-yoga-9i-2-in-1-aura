@@ -124,7 +124,7 @@ After installing, click the "Ideapad Extra Buttons" section, add a preset, click
 
 ### Example 1
 
-Hold down Ctrl for 1 second when an unknown key is pressed -- this gives you a moment to use it as a normal modifier,
+Hold down Ctrl for 1 second when a key is pressed. This gives you a moment to use a "special" key as a normal modifier, since most of them do not have a held state (except the copilot key)
 
 ```js
 key_down(KEY_LEFTCTRL).wait(1000).key_up(KEY_LEFTCTRL)
@@ -155,8 +155,9 @@ modify(KEY_LEFTCTRL, key(KEY_SPACE))
 ### Suggested setup
 
 * copilot key remapped to `KEY_RIGHTCTRL` (works as a normal key, ie with distinct keyup / keydown events)
-* unknown keys remapped to `XF86Launch1` as a generic app launcher
-* favourites key (star with "S" in it at top) remapped to `XF86Launch3` as a generic app launcher (note that the "audio settings" key is already mapped to Launch 2)
+* unknown keys remapped to `XF86Launch1`, `XF86Launch3`, etc as generic app launchers
+  * which keys can be mapped independently may be distro / kernel dependent
+  * note that the "audio settings" key may already be mapped to `XF86Launch2`
 * pen buttons remapped as needed for your drawing software
 
 
@@ -288,7 +289,7 @@ You can confirm that it is working by running `alsaucm listcards`, it should pro
     LENOVO-83LC-Yoga92_in_114ILL10-LNVNB161216
 ```
 
-If you still encounter problems please run `alsa-info` and compare your output to the following one: 
+If you still encounter problems please run `alsa-info` and compare your output to the following one:
 
 http://alsa-project.org/db/?f=00aaa2b0024b2e1a9641d978f526ff44576577b6
 

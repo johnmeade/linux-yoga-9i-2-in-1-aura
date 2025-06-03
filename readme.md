@@ -55,7 +55,7 @@ Most testing below was done on Fedora 41.
   * the power mode key (top right below "delete") works as expected in Fedora -- this may be distro / desktop dependent
   * the audio settings key on the right can be used / remapped out-of-the-box (keycode 149 "KEY_PROG2")
   * several other keys emit keycode 240 "KEY_UNKNOWN" ("mode" key Fn+F9, Fn+F11, and the eyeball & hollow star on the bottom right)
-    * these can only partially be used, see "Key Remapping" below
+    * these can only partially be used (see "Key Remapping" below), and they likely overlap with each other, so you cannot map different functions to each special key independently. (Currently, in Fedora 42 / 6.14.9, `FnF9(mode), FnF11(screens), hollow star` are grouped together, and `eyeball, S-star` are grouped together. This may change over time, across distros, and/or across kernels)
   * all other keys work as expected
 
 ❌ Not working:
@@ -115,10 +115,10 @@ sudo cp linux-firmware/intel/ibt-0190-* /lib/firmware/intel/
 
 # Key Remapping
 
-The [Input Remapper](https://github.com/sezanzeb/input-remapper) app can convert the "unknown" key events into other key events / macros. Limitations:
+The [Input Remapper](https://github.com/sezanzeb/input-remapper) app can convert the "unknown" key events, pen buttons, the co-pilot key, etc, into other key events / macros. Limitations:
 
-* All 4 "unknown" keys will do the same thing, they can't be remapped independently
-* The special key events emitted by the Lenovo drivers do not have a "held" state (they instantly trigger a "key up" event after the initial "key down"), so you can't exactly simulate holding a modifier key like `Ctrl` (but there is a workaround below).
+* Some special keys will do the same thing, and can't be remapped independently.
+* With the exception of the copilot key, the special key events emitted by the Lenovo drivers do not have a "held" state (they instantly trigger a "key up" event after the initial "key down"), so you can't exactly simulate holding a modifier key like `Ctrl` (but there is a workaround below).
 
 After installing, click the "Ideapad Extra Buttons" section, add a preset, click "record", record the key stroke, and then enter a macro in the field to the right.
 

@@ -74,7 +74,7 @@ Most testing below was done on Fedora 41.
 
 # ISH Workaround (auto-rotate and disbling keyboard/mouse)
 
-Credit: https://dnsense.pub/posts/9-book5-sensor-hub/
+Credit: https://dnsense.pub/posts/9-book5-sensor-hub/ and DeltaWhy for reporting
 
 The Intel "Integrated Sensor Hub" uses proprietary firmware that is not upstreamed in the Linux kernel. However, the file distributed to Windows installations works as-is with no modifications, and can just be copy-pasted into Linux.
 

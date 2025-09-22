@@ -1,3 +1,5 @@
+## NOTE: This information is deprecated, a better solution is to copy a firmware file from Windows, as described in the "ISH Workaround" section of the main readme.
+
 # Tablet Mode Workaround
 
 "Tablet mode" is an event that most desktop environments should use to disable touchpad / keyboard when the laptop is rotated into a tablet.

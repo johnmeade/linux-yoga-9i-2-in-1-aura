@@ -1,3 +1,5 @@
+NOTE: If you plan on installing Linux, consider keeping a small Windows partition, for easy access to firmware files for the Intel "Integrated Sensor Hub". This hub requires proprietary firmware that is not upstreamed to Linux, but fortunately it's easy to copy-paste into Linux if you have the files (see ISH Workaround below).
+
 All major functionality is working in recent versions of kernel & firmware, with some simple config updates.
 Distros that favor older versions of these for general stability may take a few more months to receieve the necessary changes.
 
@@ -31,9 +33,9 @@ Most testing below was done on Fedora 41.
 * fingerprint reader
 * ambient light sensor
 * disabling keyboard / touchpad in tablet mode
-  * only works when fully rotated flat
+  * only works out-of-the-box when fully rotated flat
   * older configurations may require fully closing the laptop to re-enable keyboard / touchpad
-  * see [Tablet Mode Workaround](tablet-mode-workaround.md) for more details
+  * see "ISH Workaround" below for full functionality
 
 ✅ Working on 6.14 (and some 6.13, via driver backport, eg Fedora), not working on 6.12 or earlier:
 * touchscreen input
@@ -49,6 +51,8 @@ Most testing below was done on Fedora 41.
 * suspend
   * some distros may wake immediately due to trackpad wake events, easy to fix, see "Troubleshooting Suspend" section below
 * the copilot key is recognised as a bizzare key macro, but can be remapped (for example, to Right Ctrl) using the Input Remapper software (see "Key Remapping" below) on 6.14 (remapping untested on 6.13 or earlier).
+* gyro / accelerometer  (for disabling keyboard / touchpad in "tent" mode, >180deg rotation)
+  * firmware files must be manually copied from a Windows installation, see "ISH Workaround" below
 
 ⚠️ Partially working
 * "special" keys on keyboard
@@ -57,10 +61,6 @@ Most testing below was done on Fedora 41.
   * several other keys emit keycode 240 "KEY_UNKNOWN" ("mode" key Fn+F9, Fn+F11, and the eyeball & hollow star on the bottom right)
     * these can only partially be used (see "Key Remapping" below), and they likely overlap with each other, so you cannot map different functions to each special key independently. (Currently, in Fedora 42 / 6.14.9, `FnF9(mode), FnF11(screens), hollow star` are grouped together, and `eyeball, S-star` are grouped together. This may change over time, across distros, and/or across kernels)
   * all other keys work as expected
-
-❌ Not working:
-* accelerometer (for disabling keyboard / touchpad in "tent" mode, >180deg rotation)
-  * see [Tablet Mode Workaround](tablet-mode-workaround.md) for more details
 
 ❗ Other issues:
 * When waking from a long suspend, sometimes there is temporary lag for around 1 minute
@@ -72,9 +72,45 @@ Most testing below was done on Fedora 41.
 * kernel versions below 6.12
 
 
+# ISH Workaround (auto-rotate and disbling keyboard/mouse)
+
+Credit: https://dnsense.pub/posts/9-book5-sensor-hub/
+
+The Intel "Integrated Sensor Hub" uses proprietary firmware that is not upstreamed in the Linux kernel. However, the file distributed to Windows installations works as-is with no modifications, and can just be copy-pasted into Linux.
+
+Warning: Assume this firmware file isn't legal to redistribute. Only copy it from your own installation and don't share it.
+
+1. Boot into Windows (if you already deleted Windows, you'll have to re-install somehow to get the firmware file. This should be possible, perhaps with Lenovo's help, ie recovering from a "full disk failure" scenario)
+
+2. Copy the firmware file out from `C:\Windows\System32\DriverStore\FileRepository\ishheciextensiontemplate.inf_amd64_[RANDOM_STRING]\FwImage\0003\ishS_MEU_aligned.bin` (or similar)
+
+3. Back in Linux, do this:
+
+```sh
+# backup any existing files in here, in my case just one file
+sudo mv /lib/firmware/intel/ish/{,__BACKUP__}ish_lnlm.bin.xz
+
+# replace and load firmware
+sudo mv ishS_MEU_aligned.bin /lib/firmware/intel/ish/ish_lnlm.bin
+sudo dracut --force  # (distro-dependent)
+reboot
+```
+
+The result should be a working gyro, including disabling the keyboard and even auto-rotating the screen!
+
+To confirm you've loaded the new file, you can check `sudo dmesg | grep ish`, for eg:
+
+```
+[    2.946244] intel_ish_ipc 0000:00:12.0: ISH loader: load firmware: intel/ish/ish_lnlm.bin
+[    2.970930] intel_ish_ipc 0000:00:12.0: ISH loader: firmware loaded. size:526848
+[    2.970933] intel_ish_ipc 0000:00:12.0: ISH loader: FW base version: 5.8.0.7720
+[    2.970934] intel_ish_ipc 0000:00:12.0: ISH loader: FW project version: 1.0.6.12644
+```
+
+
 # Bluetooth Fix
 
-As of March 15 2025, Fedora stable firmware breaks bluetooth. Other distros running newer versions of `linux-firmware` will probably have the same issue. Run this:
+Around March 15 2025, Fedora stable firmware breaks bluetooth. Other distros may have the same issue. If you have bluetooth issues, run this:
 
 ```sh
 sudo dmesg | grep -i bluetooth

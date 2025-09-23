@@ -24,7 +24,7 @@ So far, I've never had a crash occur with my typical workload (fairly light apps
 
 # Feature Support
 
-Most testing below was done on Fedora 41.
+Most testing below was done on Fedora 41 & 42.
 
 ✅ Should work on kernel 6.12+, earlier verisons unknown:
 * wifi
@@ -40,17 +40,17 @@ Most testing below was done on Fedora 41.
 * pen/stylus - touch input, pressure, tilt, side buttons
 
 ✅ Working but may require manual fixes:
-* audio (may work with newer firmware / kernel, or require a simple config refresh. See "Troubleshooting Audio" section below):
+* audio (some old `linux-firmware` packages may not have correct configuration, see "Troubleshooting Audio" section below if you have an issue)
   * internal speaker output
   * internal microphone input
   * headphone jack output
 * bluetooth
-  * firmware is temporarily misconfigured upstream for some Lunar Lake chipsets, see "Bluetooth Fix" below if you have an issue.
+  * some old `linux-firmware` packages may have misconfigured bluetooth firmware for some Lunar Lake chipsets, see "Bluetooth Fix" below if you have an issue.
 * suspend
-  * some distros may wake immediately due to trackpad wake events, easy to fix, see "Troubleshooting Suspend" section below
+  * some distros may wake immediately due to touchpad wake events, easy to fix, see "Troubleshooting Suspend" section below
 * the copilot key is recognised as a bizzare key macro, but can be remapped (for example, to Right Ctrl) using the Input Remapper software (see "Key Remapping" below) on 6.14 (remapping untested on 6.13 or earlier).
-* gyro / accelerometer  (for disabling keyboard / touchpad in "tent" mode, >180deg rotation)
-  * firmware files must be manually copied from a Windows installation or driver exe, see "ISH Workaround" below
+* gyro / accelerometer  (auto-rotate, disabling keyboard/mouse, "tent" mode)
+  * firmware files must be manually copied from a Windows installation or ISH driver, see "ISH Workaround" below
 
 ⚠️ Partially working
 * "special" keys on keyboard
@@ -70,13 +70,13 @@ Most testing below was done on Fedora 41.
 * kernel versions below 6.12
 
 
-# ISH Workaround (auto-rotate and disbling keyboard/mouse)
+# ISH Workaround (auto-rotate, disabling keyboard/mouse, "tent" mode)
 
 Credit: https://dnsense.pub/posts/9-book5-sensor-hub/ and DeltaWhy for reporting
 
 The Intel "Integrated Sensor Hub" uses proprietary firmware that is not upstreamed in the Linux kernel. However, the file distributed to Windows installations works as-is with no modifications, and can just be copy-pasted into Linux.
 
-Warning: Assume this firmware file isn't legal to redistribute. Only copy it from your own installation and don't share it.
+Warning: Assume this firmware file isn't legal to redistribute. Only copy it from your own installation and don't share it. I think upstreaming is possible but may require Lenovo and/or Intel's sign-off.
 
 **Step 1: Obtain the firmware file**
 
@@ -88,9 +88,9 @@ Download the `Intel Integrated Sensor Hub Driver for Windows 11 (64-bit) - Yoga 
 
 You can try to use `wine` directly, but you may have `.NET` issues, in which case you can just use `bottles`.
 
-For Fedora, `sudo dnf install bottles`
+Eg for Fedora: `sudo dnf install bottles`
 
-Create a bottle, run the exe, select "extract only", and then grab the firmware file from drive_c! For flatpak Bottles it should be:
+Create a bottle, run the exe, select "extract only", and then grab the firmware file from `drive_c`! For flatpak Bottles it should be:
 
 `~/.local/share/bottles/bottles/ish-driver/drive_c/DRIVERS/IntegratedSensorHub/20252309.10342242/Source/IshHeciExtensionTemplate/x64/FWImage/0003/ishS_MEU_aligned.bin`
 
@@ -116,7 +116,7 @@ sudo update-initramfs -u  # Ubuntu
 reboot
 ```
 
-The result should be a working gyro, including disabling the keyboard and even auto-rotating the screen!
+The result should be a working gyro / accelerometer, including disabling the keyboard and auto-rotating the screen!
 
 To confirm you've loaded the new file, you can check `sudo dmesg | grep ish`, for eg:
 
@@ -151,11 +151,12 @@ sudo ln -s /lib/firmware/intel/ibt-0190-0291.sfi /lib/firmware/intel/ibt-0190-02
 sudo ln -s /lib/firmware/intel/ibt-0190-0291.ddc /lib/firmware/intel/ibt-0190-0291-pci.ddc
 ```
 
-Reboot. It might also require:
+Reboot. It might also require updating initial ramdisk:
 
 ```sh
-sudo dracut --force
-# (note: your distro might use `initramfs`)
+sudo dracut --force  # Fedora
+sudo update-initramfs -u  # Ubuntu
+# etc
 ```
 
 before reboot.
@@ -255,7 +256,7 @@ add these lines:
 
 ```ini
 [Unit]
-Description=Disable wakeup for ELAN trackpad
+Description=Disable wakeup for ELAN touchpad
 After=multi-user.target
 
 [Service]
@@ -281,8 +282,7 @@ If you want to try fixing audio on outdated systems, you may try these steps. Th
 
 ## Update Linux Firmware
 
-⚠️ As of March 14, 2025, bluetooth may be broken on some newer firmware releases.
-See the "Bluetooth Fix" section for a fix.
+This is likely only applicable to distros that use very old Linux packages.
 
 If you have a version of linux firmware newer than March 14, 2025, you should skip this and try the Alsa UCM and sof firmware steps below.
 

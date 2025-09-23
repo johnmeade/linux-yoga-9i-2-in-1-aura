@@ -1,4 +1,4 @@
-## NOTE: This information is deprecated, a better solution is to copy a firmware file from Windows, as described in the "ISH Workaround" section of the main readme.
+## NOTE: This information is deprecated, a better solution is to copy a firmware file from a Windows installation / ISH driver, as described in the "ISH Workaround" section of the main readme.
 
 # Tablet Mode Workaround
 

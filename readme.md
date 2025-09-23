@@ -1,5 +1,3 @@
-NOTE: If you plan on installing Linux, consider keeping a small Windows partition, for easy access to firmware files for the Intel "Integrated Sensor Hub". This hub requires proprietary firmware that is not upstreamed to Linux, but fortunately it's easy to copy-paste into Linux if you have the files (see ISH Workaround below).
-
 All major functionality is working in recent versions of kernel & firmware, with some simple config updates.
 Distros that favor older versions of these for general stability may take a few more months to receieve the necessary changes.
 
@@ -52,7 +50,7 @@ Most testing below was done on Fedora 41.
   * some distros may wake immediately due to trackpad wake events, easy to fix, see "Troubleshooting Suspend" section below
 * the copilot key is recognised as a bizzare key macro, but can be remapped (for example, to Right Ctrl) using the Input Remapper software (see "Key Remapping" below) on 6.14 (remapping untested on 6.13 or earlier).
 * gyro / accelerometer  (for disabling keyboard / touchpad in "tent" mode, >180deg rotation)
-  * firmware files must be manually copied from a Windows installation, see "ISH Workaround" below
+  * firmware files must be manually copied from a Windows installation or driver exe, see "ISH Workaround" below
 
 ⚠️ Partially working
 * "special" keys on keyboard
@@ -80,19 +78,41 @@ The Intel "Integrated Sensor Hub" uses proprietary firmware that is not upstream
 
 Warning: Assume this firmware file isn't legal to redistribute. Only copy it from your own installation and don't share it.
 
-1. Boot into Windows (if you already deleted Windows, you'll have to re-install somehow to get the firmware file. This should be possible, perhaps with Lenovo's help, ie recovering from a "full disk failure" scenario)
+**Step 1: Obtain the firmware file**
 
-2. Copy the firmware file out from `C:\Windows\System32\DriverStore\FileRepository\ishheciextensiontemplate.inf_amd64_[RANDOM_STRING]\FwImage\0003\ishS_MEU_aligned.bin` (or similar)
+If you still have a Windows partition, boot into Windows, and copy the firmware file out from `C:\Windows\System32\DriverStore\FileRepository\ishheciextensiontemplate.inf_amd64_[RANDOM_STRING]\FwImage\0003\ishS_MEU_aligned.bin` (or similar), and skip to Step 2.
 
-3. Back in Linux, do this:
+If you deleted your Windows partition, you have to extract the firmware from the driver distributed by Lenovo.
+
+Download the `Intel Integrated Sensor Hub Driver for Windows 11 (64-bit) - Yoga 9 2-in-1 14ILL10`, from [here](https://pcsupport.lenovo.com/ca/en/products/laptops-and-netbooks/yoga-series/yoga-9-2-in-1-14ill10/downloads/ds572874-intel-integrated-sensor-hub-driver-for-windows-11-64-bit-yoga-9-2-in-1-14ill10?category=Motherboard%20Devices%20%28Backplanes,%20core%20chipset,%20onboard%20video,%20PCIe%20switches%29).
+
+You can try to use `wine` directly, but you may have `.NET` issues, in which case you can just use `bottles`.
+
+For Fedora, `sudo dnf install bottles`
+
+Create a bottle, run the exe, select "extract only", and then grab the firmware file from drive_c! For flatpak Bottles it should be:
+
+`~/.local/share/bottles/bottles/ish-driver/drive_c/DRIVERS/IntegratedSensorHub/20252309.10342242/Source/IshHeciExtensionTemplate/x64/FWImage/0003/ishS_MEU_aligned.bin`
+
+This dir may change depending on install method, eg it might be at
+
+`~/.var/app/com.usebottles.bottles/data/bottles/...`
+
+
+**Step 2: Install the firmware file**
 
 ```sh
 # backup any existing files in here, in my case just one file
 sudo mv /lib/firmware/intel/ish/{,__BACKUP__}ish_lnlm.bin.xz
 
-# replace and load firmware
+# replace firmware
 sudo mv ishS_MEU_aligned.bin /lib/firmware/intel/ish/ish_lnlm.bin
-sudo dracut --force  # (distro-dependent)
+
+# update initial ramdisk
+sudo dracut --force  # Fedora
+sudo update-initramfs -u  # Ubuntu
+# etc
+
 reboot
 ```
 

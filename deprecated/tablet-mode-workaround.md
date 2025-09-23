@@ -102,9 +102,9 @@ Categories=Utility;
 
 If you want some decent icons for your shortcuts, you can use these:
 
-<img src="https://github.com/johnmeade/linux-yoga-9i-2-in-1-aura/blob/main/tablet-mode-disable.png?raw=true" width="64">
+<img src="https://github.com/johnmeade/linux-yoga-9i-2-in-1-aura/blob/main/deprecated/tablet-mode-disable.png?raw=true" width="64">
 
-<img src="https://github.com/johnmeade/linux-yoga-9i-2-in-1-aura/blob/main/tablet-mode-enable.png?raw=true" width="64">
+<img src="https://github.com/johnmeade/linux-yoga-9i-2-in-1-aura/blob/main/deprecated/tablet-mode-enable.png?raw=true" width="64">
 
 ![Tablet Mode Icons in Gnome](tablet-mode-gnome-dock-eg.png)
 

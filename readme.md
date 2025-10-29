@@ -52,17 +52,18 @@ Most testing below was done on Fedora 41 & 42.
 * gyro / accelerometer  (auto-rotate, disabling keyboard/mouse, "tent" mode)
   * firmware files must be manually copied from a Windows installation or ISH driver, see "ISH Workaround" below
 
-⚠️ Partially working
-* "special" keys on keyboard
+✅ Working on latest Fedora 43 (results will vary across distributions / kernels)
+* most "special" keys on keyboard
   * the power mode key (top right below "delete") works as expected in Fedora -- this may be distro / desktop dependent
-  * the audio settings key on the right can be used / remapped out-of-the-box (keycode 149 "KEY_PROG2")
-  * several other keys emit keycode 240 "KEY_UNKNOWN" ("mode" key Fn+F9, Fn+F11, and the eyeball & hollow star on the bottom right)
-    * these can only partially be used (see "Key Remapping" below), and they likely overlap with each other, so you cannot map different functions to each special key independently. (Currently, in Fedora 42 / 6.14.9, `FnF9(mode), FnF11(screens), hollow star` are grouped together, and `eyeball, S-star` are grouped together. This may change over time, across distros, and/or across kernels)
-  * all other keys work as expected
+  * the audio settings key, eyeball key, and hollow star key on the right should be usable out-of-the-box on recent distros (they are mapped to generic launcher keys in Fedora 43)
+
+⚠️ Partially working
+* some "special" keys on keyboard may emit keycode 240 "KEY_UNKNOWN" (Fn+F9 and Fn+F11 do this on Fedora 43)
+  * these can only partially be used (see "Key Remapping" below), and they likely overlap with each other, so you cannot map different functions to each special key independently.
 
 ❗ Other issues:
 * When waking from a long suspend, sometimes there is temporary lag for around 1 minute
-* There seems to be a very rare full system freeze issue that can happen, which requires a hard reboot.
+* There is a full system freeze issue that can happen, typically on wake-up or under high CPU+GPU load, which requires a hard reboot.
 
 ❓ Untested:
 * headphone jack mic input (probably fine?)
@@ -172,9 +173,14 @@ sudo cp linux-firmware/intel/ibt-0190-* /lib/firmware/intel/
 
 # Key Remapping
 
+NOTE Oct 29: Input Remapper has a bug at the moment for some recent distros / desktop environments (like Fedora 43), I'm sure it will be resolved soon,
+```
+proxy_method.py:97:__call__:gi.repository.GLib.GError: g-io-error-quark: GDBus.Error:unknown.PicklingError: Can't pickle local object <class 'ctypes.CDLL.__init__.<locals>._FuncPtr'> (36)
+```
+
 The [Input Remapper](https://github.com/sezanzeb/input-remapper) app can convert the "unknown" key events, pen buttons, the co-pilot key, etc, into other key events / macros. Limitations:
 
-* Some special keys will do the same thing, and can't be remapped independently.
+* Depending on your distro / kernel / firmware / etc, some special keys will do the same thing, and can't be remapped independently.
 * With the exception of the copilot key, the special key events emitted by the Lenovo drivers do not have a "held" state (they instantly trigger a "key up" event after the initial "key down"), so you can't exactly simulate holding a modifier key like `Ctrl` (but there is a workaround below).
 
 After installing, click the "Ideapad Extra Buttons" section, add a preset, click "record", record the key stroke, and then enter a macro in the field to the right.
@@ -195,9 +201,7 @@ Remap the unknown keys to `XF86Launch1` so it can then be bound as usual from yo
 key(XF86Launch1)
 ```
 
-Now, this key should work as a generic extra key that you can bind commands to (confirmed to work in Gnome). There are many other random key names that you can bind if this doesn't work.
-
-Or of course, or you just can map that one key to a macro / sequence of keys, and use that same sequence as a key shortcut in your desktop settings.
+Now, this key should work as a generic extra key that you can bind commands to (confirmed to work in Gnome).
 
 ### Example 3
 
@@ -207,7 +211,7 @@ You can remap buttons on the stylus / pen too. To do this, select the "Wacom [..
 modify(KEY_LEFTCTRL, key(KEY_SPACE))
 ```
 
-(This was useful for the RNote app, which apparently doesn't handle this "Button STYLUS" event natively. The other button works as expected in RNote though. This is likely app-dependent, so it's nice to know these can simply be remapped.)
+(This can be useful for apps that don't handle certain events like "Button STYLUS" natively.)
 
 ### Suggested setup
 

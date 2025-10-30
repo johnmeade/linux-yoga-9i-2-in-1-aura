@@ -173,10 +173,11 @@ sudo cp linux-firmware/intel/ibt-0190-* /lib/firmware/intel/
 
 # Key Remapping
 
-NOTE Oct 29: Input Remapper has a bug at the moment for some recent distros / desktop environments (like Fedora 43), I'm sure it will be resolved soon,
+NOTE Oct 29: Input Remapper has a bug at the moment for some recent distros / desktop environments (like Fedora 43) using Python 3.14,
 ```
 proxy_method.py:97:__call__:gi.repository.GLib.GError: g-io-error-quark: GDBus.Error:unknown.PicklingError: Can't pickle local object <class 'ctypes.CDLL.__init__.<locals>._FuncPtr'> (36)
 ```
+The fix seems to have been merged and a new release is coming soon, [thread](https://github.com/sezanzeb/input-remapper/pull/1184#issuecomment-3446919672).
 
 The [Input Remapper](https://github.com/sezanzeb/input-remapper) app can convert the "unknown" key events, pen buttons, the co-pilot key, etc, into other key events / macros. Limitations:
 

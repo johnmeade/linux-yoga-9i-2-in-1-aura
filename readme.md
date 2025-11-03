@@ -1,26 +1,27 @@
 All major functionality is working in recent versions of kernel & firmware, with some simple config updates.
-Distros that favor older versions of these for general stability may take a few more months to receieve the necessary changes.
+Caveats:
+* There is a full system freeze issue that can happen, which requires a reboot. It's mostly seen under high load or shortly after wake-up. It's pretty rare under light-to-medium load.
+* Sometimes Bluetooth will enter an unusable buggy state on wake-up. Reboot fixes it, other solutions not explored yet.
 
 I recommend using the latest stable Fedora as a starting point.
-I haven't done a fresh install to fully test this, but I believe the only issues you might face in Fedora are bluetooth and audio related.
 
-If Bluetooth doesn't work, follow the "Bluetooth Fix" section below (create a couple symlinks).
+If your distro uses old packages / kernels / firmware, you may run into some of these issues:
+* If Bluetooth doesn't work, follow the "Bluetooth Fix" section below (create a couple symlinks).
+* If audio doesn't work, follow the Alsa UCM step in the "Troubleshooting Audio" section below (download some config files and reset alsa).
 
-If audio doesn't work, follow the Alsa UCM step in the "Troubleshooting Audio" section below (download some config files and reset alsa).
-
-If you have any issues, the best place to ask might be on [this thread](https://forums.lenovo.com/t5/Other-Linux-Discussions/Linux-Support-Yoga-9i-2-in-1-Aura/m-p/5363703) on the Lenovo forums.
+If you have any issues, you can report them here or on [this thread](https://forums.lenovo.com/t5/Other-Linux-Discussions/Linux-Support-Yoga-9i-2-in-1-Aura/m-p/5363703) on the Lenovo forums.
 
 Feel free to open issues or PRs if you have something to ask or share!
 
 # General Stability
 
-There is currently a power management bug that can sometimes cause the CPU cores to get "stuck" in their low-power state (400MHz) for about 1 minute when waking from suspend. This rarely happens to me, and I've never seen this issue persist longer than 1 minute, but [reports](https://www.phoronix.com/review/lunarlake-xe2-windows-linux-2025) from similar models (like the X1 Carbon Aura) suggest it's possible they remain stuck unless you switch to the "Performance" power mode (ie in Gnome settings).
+There is a power management bug that can sometimes cause the CPU cores to get "stuck" in their low-power state (400MHz) for about 1 minute when waking from suspend. This rarely happens to me, and I've never seen this issue persist longer than 1 minute, but [reports](https://www.phoronix.com/review/lunarlake-xe2-windows-linux-2025) from similar models (like the X1 Carbon Aura) suggest it's possible they remain stuck unless you switch to the "Performance" power mode (ie in Gnome settings).
 
-There is also a rare full system freeze issue that requires reboot, perhaps most likely to occur just after wakeup, but the cause of this is unknown. Perhaps it's related to the issue above. I've seen this twice.
+There is also a rare full system freeze issue that requires reboot, perhaps most likely to occur just after wakeup, but the cause of this is unknown. Perhaps it's related to the issue above.
 
-A similar rare bug is a full system freeze followed by a forced reboot shortly after. I've experienced this twice, both times while playing a [game](https://www.cavesofqud.com) with very simple graphics. I'm not sure of the cause for this one either, perhaps the CPU/GPU load is related.
+A similar rare bug is a full system freeze followed by a forced reboot shortly after. I've experienced this while playing games or sometimes with other high-load applications. I'm not sure of the cause for this one either, perhaps the CPU/GPU load is related.
 
-So far, I've never had a crash occur with my typical workload (fairly light apps like a browser, vscode, slack, spotify, etc).
+System freezes / crashes seem very rare with light / medium workloads (eg a browser, vscode, slack, spotify, etc).
 
 # Feature Support
 
@@ -64,6 +65,7 @@ Most testing below was done on Fedora 41 & 42.
 ❗ Other issues:
 * When waking from a long suspend, sometimes there is temporary lag for around 1 minute
 * There is a full system freeze issue that can happen, typically on wake-up or under high CPU+GPU load, which requires a hard reboot.
+* Sometimes bluetooth stops working when waking up
 
 ❓ Untested:
 * headphone jack mic input (probably fine?)
@@ -131,7 +133,7 @@ To confirm you've loaded the new file, you can check `sudo dmesg | grep ish`, fo
 
 # Bluetooth Fix
 
-Around March 15 2025, Fedora stable firmware breaks bluetooth. Other distros may have the same issue. If you have bluetooth issues, run this:
+If you have bluetooth issues, run this:
 
 ```sh
 sudo dmesg | grep -i bluetooth
@@ -172,11 +174,6 @@ sudo cp linux-firmware/intel/ibt-0190-* /lib/firmware/intel/
 
 
 # Key Remapping
-
-NOTE Oct 29: Input Remapper has a bug at the moment for some recent distros / desktop environments (like Fedora 43), I'm sure it will be resolved soon,
-```
-proxy_method.py:97:__call__:gi.repository.GLib.GError: g-io-error-quark: GDBus.Error:unknown.PicklingError: Can't pickle local object <class 'ctypes.CDLL.__init__.<locals>._FuncPtr'> (36)
-```
 
 The [Input Remapper](https://github.com/sezanzeb/input-remapper) app can convert the "unknown" key events, pen buttons, the co-pilot key, etc, into other key events / macros. Limitations:
 

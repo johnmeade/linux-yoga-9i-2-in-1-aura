@@ -1,13 +1,20 @@
 All major functionality is working in recent versions of kernel & firmware, with some simple config updates.
+I recommend using the latest stable Fedora as a starting point.
+
 Caveats:
 * There is a full system freeze issue that can happen, which requires a reboot. It's mostly seen under high load or shortly after wake-up. It's pretty rare under light-to-medium load.
 * Sometimes Bluetooth will enter an unusable buggy state on wake-up. Reboot fixes it, other solutions not explored yet.
 
-I recommend using the latest stable Fedora as a starting point.
+Required Steps (Fedora 43):
+* Disable wake events from the touchpad ("Troubleshooting Suspend" section below).
+* Install ISH firmware for correct behaviour when rotating into tent / tablet mode ("ISH Workaround" section below).
 
 If your distro uses old packages / kernels / firmware, you may run into some of these issues:
 * If Bluetooth doesn't work, follow the "Bluetooth Fix" section below (create a couple symlinks).
 * If audio doesn't work, follow the Alsa UCM step in the "Troubleshooting Audio" section below (download some config files and reset alsa).
+
+Recommended Steps:
+* Install InputRemapper to make the copilot key useful.
 
 If you have any issues, you can report them here or on [this thread](https://forums.lenovo.com/t5/Other-Linux-Discussions/Linux-Support-Yoga-9i-2-in-1-Aura/m-p/5363703) on the Lenovo forums.
 

@@ -175,6 +175,8 @@ sudo cp linux-firmware/intel/ibt-0190-* /lib/firmware/intel/
 
 # Key Remapping
 
+NOTE: if your distro uses Python 3.14, version InputRemapper v2.2.0 or higher is required.
+
 The [Input Remapper](https://github.com/sezanzeb/input-remapper) app can convert the "unknown" key events, pen buttons, the co-pilot key, etc, into other key events / macros. Limitations:
 
 * Depending on your distro / kernel / firmware / etc, some special keys will do the same thing, and can't be remapped independently.

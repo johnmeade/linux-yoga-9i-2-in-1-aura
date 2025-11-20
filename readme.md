@@ -1,4 +1,4 @@
-⚠️ Temporary note Nov 20: kernel 6.17.8 may cause audio driver issues, just stay on 6.17.7 for now. I'll investigate if it persists into the next kernel release. If you have a workaround you'd like to share, please post it in a github issue here.
+⚠️ Temporary note Nov 20: kernel 6.17.8 may cause audio driver issues, just stay on 6.17.7 for now. At a glance, it seems that the `sof` topology file selected is `cs42l43` but should be `cs35l56`. If you have a workaround you'd like to share, please post it in a github issue here.
 
 All major functionality is working in recent versions of kernel & firmware, with some simple config updates.
 I recommend using the latest stable Fedora as a starting point.

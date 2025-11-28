@@ -2,7 +2,7 @@
 ```
 [   22.614245] platform sof_sdw: deferred probe pending: sof_sdw: snd_soc_register_card failed -517
 ```
-If you have a workaround you'd like to share, please post it in a github issue here.
+This will likely be fixed in a 6.17.9 release ([bug report](https://bugzilla.redhat.com/show_bug.cgi?id=2415785))
 
 All major functionality is working in recent versions of kernel & firmware, with some simple config updates.
 I recommend using the latest stable Fedora as a starting point.

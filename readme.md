@@ -1,8 +1,13 @@
-⚠️ Temporary note Nov 20: kernel 6.17.8 may cause audio driver issues, just stay on 6.17.7 for now. The suspect line in dmesg:
+⚠️ Temporary note Nov 20: kernel 6.17.8-6.17.9 may cause audio driver issues, just stay on 6.17.7 for now. The suspect line in dmesg:
 ```
 [   22.614245] platform sof_sdw: deferred probe pending: sof_sdw: snd_soc_register_card failed -517
 ```
-This will likely be fixed in a 6.17.9 release ([bug report](https://bugzilla.redhat.com/show_bug.cgi?id=2415785))
+This has been fixed in Fedora's [6.17.10 kernel](https://bodhi.fedoraproject.org/updates/FEDORA-2025-5894d5be32), which will be released in less than a week.
+If you want to test it, or you need it fixed ASAP, you can install the testing version on Fedora with:
+```sh
+sudo dnf upgrade --enablerepo=updates-testing --refresh --advisory=FEDORA-2025-5894d5be32
+```
+([Related bug report](https://bugzilla.redhat.com/show_bug.cgi?id=2415785))
 
 All major functionality is working in recent versions of kernel & firmware, with some simple config updates.
 I recommend using the latest stable Fedora as a starting point.

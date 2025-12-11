@@ -2,11 +2,7 @@
 ```
 [   22.614245] platform sof_sdw: deferred probe pending: sof_sdw: snd_soc_register_card failed -517
 ```
-This has been fixed in Fedora's [6.17.10 kernel](https://bodhi.fedoraproject.org/updates/FEDORA-2025-5894d5be32), which will be released in less than a week.
-If you want to test it, or you need it fixed ASAP, you can install the testing version on Fedora with:
-```sh
-sudo dnf upgrade --enablerepo=updates-testing --refresh --advisory=FEDORA-2025-5894d5be32
-```
+This has been partially fixed in Fedora (6.17.10 kernel), but an issue with the headphone jack remains.
 ([Related bug report](https://bugzilla.redhat.com/show_bug.cgi?id=2415785))
 
 All major functionality is working in recent versions of kernel & firmware, with some simple config updates.

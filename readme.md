@@ -1,16 +1,10 @@
-⚠️ Temporary note Nov 20: kernel 6.17.8-6.17.9 may cause audio driver issues, just stay on 6.17.7 for now. The suspect line in dmesg:
-```
-[   22.614245] platform sof_sdw: deferred probe pending: sof_sdw: snd_soc_register_card failed -517
-```
-This has been partially fixed in Fedora (6.17.10 kernel), but an issue with the headphone jack remains.
-([Related bug report](https://bugzilla.redhat.com/show_bug.cgi?id=2415785))
-
 All major functionality is working in recent versions of kernel & firmware, with some simple config updates.
 I recommend using the latest stable Fedora as a starting point.
 
 Caveats:
 * There is a full system freeze issue that can happen, which requires a reboot. It's mostly seen under high load or shortly after wake-up. It's pretty rare under light-to-medium load.
 * Sometimes Bluetooth will enter an unusable buggy state on wake-up. Reboot fixes it, other solutions not explored yet.
+* Some distros may have audio driver issues from a kernel regression around Nov 2025 (Fixed in Jan 2026 in Fedora kernels)
 
 Required Steps (Fedora 43):
 * Disable wake events from the touchpad ("Troubleshooting Suspend" section below).
@@ -294,6 +288,9 @@ sudo systemctl start disable-elan-wakeup.service
 ```
 
 # Troubleshooting Audio
+
+Fedora kernels around 6.17.8-6.18.4 may have audio driver issues. Other distros may take longer to receive fixes.
+([Related bug report](https://bugzilla.redhat.com/show_bug.cgi?id=2415785))
 
 If you want to try fixing audio on outdated systems, you may try these steps. This is not an exhaustive list.
 

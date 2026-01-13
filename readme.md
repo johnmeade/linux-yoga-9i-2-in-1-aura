@@ -72,6 +72,7 @@ Most testing below was done on Fedora 41 & 42.
 
 ❗ Other issues:
 * When waking from a long suspend, sometimes there is temporary lag for around 1 minute
+  * If the issue persists longer than this, or you want a fast fix, see `Laggy CPU Cores on Wakeup Workaround` below
 * There is a full system freeze issue that can happen, typically on wake-up or under high CPU+GPU load, which requires a hard reboot.
 * Sometimes bluetooth stops working when waking up
 
@@ -79,6 +80,22 @@ Most testing below was done on Fedora 41 & 42.
 * headphone jack mic input (probably fine?)
 * touchscreen support with kernel 6.13 on other distros
 * kernel versions below 6.12
+
+
+# Laggy CPU Cores on Wakeup Workaround
+
+In most cases, the laggy behaviour on wakeup is temporary and fixes itself after a few seconds.
+
+If you want to try to force the cores to wake up, try this script provided by [abhijangda](https://github.com/johnmeade/linux-yoga-9i-2-in-1-aura/issues/21)
+
+```sh
+for i in $(seq 0 7)
+do
+        max_freq=$(cat /sys/devices/system/cpu/cpu$i/cpufreq/cpuinfo_max_freq)
+        echo "Setting $max_freq for core $i"
+        echo $max_freq >  /sys/devices/system/cpu/cpu$i/cpufreq/scaling_max_freq
+done
+```
 
 
 # ISH Workaround (auto-rotate, disabling keyboard/mouse, "tent" mode)

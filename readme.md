@@ -162,6 +162,17 @@ To confirm you've loaded the new file, you can check `sudo dmesg | grep ish`, fo
 [    2.970934] intel_ish_ipc 0000:00:12.0: ISH loader: FW project version: 1.0.6.12644
 ```
 
+**Further Troubleshooting**
+
+Some users have reported they need to also compress the bin file with `zst`, 
+
+```sh
+zstd --compress ishS_MEU_aligned.bin
+```
+
+and replace `/lib/firmware/intel/ish/ish_lnlm.bin.zst` instead of `/lib/firmware/intel/ish/ish_lnlm.bin`.
+
+(Credit: Lioncat6)
 
 # Bluetooth Fix
 

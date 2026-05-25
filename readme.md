@@ -1,10 +1,17 @@
-All major functionality is working in recent versions of kernel & firmware, with some simple config updates.
-I recommend using the latest stable Fedora as a starting point.
+Some hardware configurations should have all major functionality working at this point, at least in Fedora.
+In my case, the laptop model is reported as `Yoga 9 2-in-1 14ILL10` and I bought it Feb 2025.
+There may be slight hardware differences over time for the same model code / SKU, and this may cause additional problems.
+Please read the issues for more details.
 
 Caveats:
-* There is a full system freeze issue that can happen, which requires a reboot. It's mostly seen under high load or shortly after wake-up. It's pretty rare under light-to-medium load.
-* Sometimes Bluetooth will enter an unusable buggy state on wake-up. Reboot fixes it, other solutions not explored yet.
-* Some distros may have audio driver issues from a kernel regression around Nov 2025 (Fixed in Jan 2026 in Fedora kernels)
+* There is a full system freeze issue that can happen, which requires a reboot.
+  * It's mostly seen under high load or shortly after wake-up.
+  * It's pretty rare under light-to-medium load.
+  * There has been some progress on debugging this, and there is a kernel patch that seems to significantly reduce the frequency of the issue for many users. The root cause is still unknown, or at least un-confirmed.
+* Some distros, or newer hardware configurations for this line of laptops, seem to experience more issues, like
+  * Bluetooth issues
+  * ISH firmware issues
+  * Audio driver issues (some may be realted to an old kernel regression around Nov 2025, which was fixed around Jan 2026)
 
 Required Steps (Fedora 43):
 * Disable wake events from the touchpad ("Troubleshooting Suspend" section below).

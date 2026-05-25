@@ -215,6 +215,11 @@ git clone https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmwar
 sudo cp linux-firmware/intel/ibt-0190-* /lib/firmware/intel/
 ```
 
+**Further Troubleshooting**
+
+Some users have reported needing to blacklist the `btintel_pcie` kernel module to get Bluetooth working.
+
+(Credit: Lioncat6, https://github.com/johnmeade/linux-yoga-9i-2-in-1-aura/discussions/32)
 
 # Key Remapping
 

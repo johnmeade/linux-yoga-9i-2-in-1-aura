@@ -217,7 +217,9 @@ sudo cp linux-firmware/intel/ibt-0190-* /lib/firmware/intel/
 
 **Further Troubleshooting**
 
-Some users have reported needing to blacklist the `btintel_pcie` kernel module to get Bluetooth working.
+Some users have reported newer hardware may have ongoing Bluetooth issues.
+
+It may block suspend (see the Bluetooth section of the `Troubleshooting Suspend` section).
 
 (Credit: Lioncat6, https://github.com/johnmeade/linux-yoga-9i-2-in-1-aura/discussions/32)
 
@@ -326,6 +328,12 @@ sudo systemctl daemon-reload
 sudo systemctl enable disable-elan-wakeup.service
 sudo systemctl start disable-elan-wakeup.service
 ```
+
+**Bluetooth Blocking Suspend**
+
+Some users report buggy bluetooth modules interfering with suspend, which might be fixed by blacklisting `btintel_pcie`.
+
+(Credit: Lioncat6, https://github.com/johnmeade/linux-yoga-9i-2-in-1-aura/discussions/32)
 
 # Troubleshooting Audio
 

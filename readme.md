@@ -188,6 +188,17 @@ Custom kernels are rejected at boot if Secure Boot is enabled. Disable it in
 BIOS/UEFI settings before rebooting. Stock Fedora kernels are unaffected and
 will continue to work after re-enabling Secure Boot.
 
+### GRUB
+
+You can run this to ensure the GRUB menu is shown on boot for explicit kernel selection,
+
+```sh
+sudo sed -i 's/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=10/' /etc/default/grub
+sudo sed -i 's/^GRUB_TIMEOUT_STYLE=.*/GRUB_TIMEOUT_STYLE=menu/' /etc/default/grub
+sudo grub2-editenv - unset menu_auto_hide
+sudo grub2-mkconfig -o /boot/grub2/grub.cfg
+```
+
 ### Reboot
 
 ```bash
@@ -199,7 +210,7 @@ Select `[...]-xe-lnl-fw-fix` in the GRUB menu. It may be pre-selected if it's th
 ### Verify
 
 ```bash
-uname -r   # should print 7.1.0-rc2-xe-lnl-fw-fix
+uname -r   # should print [...]-xe-lnl-fw-fix
 ```
 
 </details>

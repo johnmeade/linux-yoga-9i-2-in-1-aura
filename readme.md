@@ -1,44 +1,49 @@
 Some hardware configurations should have all major functionality working at this point, at least in Fedora.
 In my case, the laptop model is reported as `Yoga 9 2-in-1 14ILL10` and I bought it Feb 2025.
 There may be slight hardware differences over time for the same model code / SKU, and this may cause additional problems.
-Please read the issues for more details.
+Please read the issues for more details, and report any issues or inconsistencies you find.
 
 Caveats:
 * There is a full system freeze issue that can happen, which requires a reboot.
   * It's mostly seen under high load or shortly after wake-up.
   * It's pretty rare under light-to-medium load.
-  * There has been some progress on debugging this, and there is a kernel patch that seems to significantly reduce the frequency of the issue for many users. The root cause is still unknown, or at least un-confirmed.
+  * The root cause is still unknown, or at least un-confirmed.
+  * There has been some progress on debugging this, and there is a kernel patch that seems to significantly reduce the frequency of the issue for many users (see [Potential Crash Fix](#crash-fix)).
 * Some distros, or newer hardware configurations for this line of laptops, seem to experience more issues, like
   * Bluetooth issues
   * ISH firmware issues
   * Audio driver issues (some may be realted to an old kernel regression around Nov 2025, which was fixed around Jan 2026)
+* CPU cores can get stuck in their low-power 400MHz state for 1-2 minutes after waking from a long suspend
+  * This has always been temporary for me, and I haven't noticed many complaints about this, but [reports](https://www.phoronix.com/review/lunarlake-xe2-windows-linux-2025) from similar models (like the X1 Carbon Aura) suggest it's possible they remain stuck unless you switch to the "Performance" power mode (ie in Gnome settings).
+
+---
+
+# Setup
 
 Required Steps (Fedora 43):
 * Disable wake events from the touchpad ("Troubleshooting Suspend" section below).
 * Install ISH firmware for correct behaviour when rotating into tent / tablet mode ("ISH Workaround" section below).
 
-If your distro uses old packages / kernels / firmware, you may run into some of these issues:
-* If Bluetooth doesn't work, follow the "Bluetooth Fix" section below (create a couple symlinks).
-* If audio doesn't work, follow the Alsa UCM step in the "Troubleshooting Audio" section below (download some config files and reset alsa).
-
 Recommended Steps:
 * Install InputRemapper to make the copilot key useful.
+* Check out the [Potential Crash Fix](#crash-fix) section and consider testing it out.
+* (Temporary note June 2026) There is a fixable regression in mutter (Gnome Wayland) that causes some glitchy pen cursor behaviour in tablet mode.
+  * a patch is known but not in main branch yet, this will probably take several weeks to upstream and roll out.
+  * fix with instructions for Fedora: https://gitlab.gnome.org/GNOME/mutter/-/work_items/4678#note_2770867
 
-If you have any issues, you can report them here or on [this thread](https://forums.lenovo.com/t5/Other-Linux-Discussions/Linux-Support-Yoga-9i-2-in-1-Aura/m-p/5363703) on the Lenovo forums.
+If your distro uses old packages / kernels / firmware, you may run into issues with audio, bluetooth, or other components.
 
-Feel free to open issues or PRs if you have something to ask or share!
+If you have an issue, take a look around this page and the issue tracker first, and then report any issues you would like help with.
 
-# General Stability
+There is also a discussion section for asking questions, posting fixes, etc.
 
-There is a power management bug that can sometimes cause the CPU cores to get "stuck" in their low-power state (400MHz) for about 1 minute when waking from suspend. This rarely happens to me, and I've never seen this issue persist longer than 1 minute, but [reports](https://www.phoronix.com/review/lunarlake-xe2-windows-linux-2025) from similar models (like the X1 Carbon Aura) suggest it's possible they remain stuck unless you switch to the "Performance" power mode (ie in Gnome settings).
 
-There is also a rare full system freeze issue that requires reboot, perhaps most likely to occur just after wakeup, but the cause of this is unknown. Perhaps it's related to the issue above.
+---
 
-A similar rare bug is a full system freeze followed by a forced reboot shortly after. I've experienced this while playing games or sometimes with other high-load applications. I'm not sure of the cause for this one either, perhaps the CPU/GPU load is related.
+# Feature Support Table
 
-System freezes / crashes seem very rare with light / medium workloads (eg a browser, vscode, slack, spotify, etc).
-
-# Feature Support
+<details>
+<summary>Expand</summary>
 
 Most testing below was done on Fedora 41 & 42.
 
@@ -81,15 +86,22 @@ Most testing below was done on Fedora 41 & 42.
 * When waking from a long suspend, sometimes there is temporary lag for around 1 minute
   * If the issue persists longer than this, or you want a fast fix, see `Laggy CPU Cores on Wakeup Workaround` below
 * There is a full system freeze issue that can happen, typically on wake-up or under high CPU+GPU load, which requires a hard reboot.
-* Sometimes bluetooth stops working when waking up
 
 ❓ Untested:
 * headphone jack mic input (probably fine?)
 * touchscreen support with kernel 6.13 on other distros
 * kernel versions below 6.12
 
+</details>
+
+
+---
 
 # Laggy CPU Cores on Wakeup Workaround
+
+<details>
+
+<summary>Expand</summary>
 
 In most cases, the laggy behaviour on wakeup is temporary and fixes itself after a few seconds.
 
@@ -104,8 +116,100 @@ do
 done
 ```
 
+</details>
+
+
+<h1 id="crash-fix">
+Potential Crash Fix
+</h1>
+
+<details>
+<summary>Expand</summary>
+
+This is a potential fix for the sudden system freeze / crash issue.
+
+Main discussion started [in this repo](https://github.com/johnmeade/linux-yoga-9i-2-in-1-aura/issues/20#issuecomment-4409617543) and continued in [the xe repo](https://gitlab.freedesktop.org/drm/xe/kernel/-/work_items/7513), which will be summarized below.
+
+* The crash is sudden, so error details do not make it to the kernel logs.
+* They can be extracted from deeper within the system via BERT logs.
+* BERT logs point to a general area of the xe driver code, but no clear bug can be found there.
+* Instead, a small xe driver patch workaround has been found, which seems to substantially decrease crashes for most.
+
+There are 2 main patches available in the GitLab issue, [v1](https://gitlab.freedesktop.org/drm/xe/kernel/-/work_items/7513#note_3430120) and [v2](https://gitlab.freedesktop.org/drm/xe/kernel/-/work_items/7513#note_3464216). In addition to these, I've created a hybrid patch (with AI assistance) combining both, which is perhaps the most defensive option. This is available as a file in this repo at `lnl-fix-hybrid.patch`. The codepaths in question are:
+
+|              Site               | v1  | v2  | hybrid |
+|---------------------------------|-----|-----|--------|
+| xe_ggtt_insert_node_transform() | ✔️  | ✔️  | ✔️     |
+| __xe_ggtt_insert_bo_at()        | ✔️  | ✔️  | ✔️     |
+| xe_ggtt_clear()                 | ✖️  | ✔️  | ✔️     |
+| xe_ggtt_invalidate()            | ✔️  | ✖️  | ✔️     |
+
+Instructions for patching and installing on Fedora (tested on `7.1.0-rc2`, open an issue if the patch breaks):
+
+### Prerequisites
+
+```bash
+sudo dnf install gcc make bc openssl-devel elfutils-libelf-devel perl flex bison dwarves
+```
+
+Download source from https://gitlab.freedesktop.org/drm/xe/kernel
+
+Commands below are run from the root directory.
+
+### First-time config setup
+
+```bash
+cp /boot/config-$(uname -r) .config
+make olddefconfig
+scripts/config --set-str LOCALVERSION "-xe-lnl-fw-fix"
+scripts/config --disable DEBUG_INFO   # optional: faster build
+```
+
+### Build
+
+```bash
+make -j$(nproc) 2>&1 | tee build.log
+```
+
+### Install
+
+```bash
+sudo make modules_install
+sudo make install
+```
+
+`make install` updates GRUB automatically.
+
+### Secure Boot
+
+Custom kernels are rejected at boot if Secure Boot is enabled. Disable it in
+BIOS/UEFI settings before rebooting. Stock Fedora kernels are unaffected and
+will continue to work after re-enabling Secure Boot.
+
+### Reboot
+
+```bash
+sudo reboot
+```
+
+Select `[...]-xe-lnl-fw-fix` in the GRUB menu. It may be pre-selected if it's the most recently installed kernel.
+
+### Verify
+
+```bash
+uname -r   # should print 7.1.0-rc2-xe-lnl-fw-fix
+```
+
+</details>
+
+
+
+---
 
 # ISH Workaround (auto-rotate, disabling keyboard/mouse, "tent" mode)
+
+<details>
+<summary>Expand</summary>
 
 Credit: https://dnsense.pub/posts/9-book5-sensor-hub/ and DeltaWhy for reporting
 
@@ -164,17 +268,22 @@ To confirm you've loaded the new file, you can check `sudo dmesg | grep ish`, fo
 
 **Further Troubleshooting**
 
-Some users have reported they need to also compress the bin file with `zst`, 
+Some users have reported they need to also compress the bin file with `zst`,
 
 ```sh
 zstd --compress ishS_MEU_aligned.bin
 ```
 
-and replace `/lib/firmware/intel/ish/ish_lnlm.bin.zst` instead of `/lib/firmware/intel/ish/ish_lnlm.bin`.
+and replace `/lib/firmware/intel/ish/ish_lnlm.bin.zst` instead of `/lib/firmware/intel/ish/ish_lnlm.bin` (Credit: Lioncat6).
 
-(Credit: Lioncat6)
+</details>
 
-# Bluetooth Fix
+---
+
+# Bluetooth Fixes
+
+<details>
+<summary>Expand</summary>
 
 If you have bluetooth issues, run this:
 
@@ -223,7 +332,15 @@ It may block suspend (see the Bluetooth section of the `Troubleshooting Suspend`
 
 (Credit: Lioncat6, https://github.com/johnmeade/linux-yoga-9i-2-in-1-aura/discussions/32)
 
+</details>
+
+
+---
+
 # Key Remapping
+
+<details>
+<summary>Expand</summary>
 
 NOTE: if your distro uses Python 3.14, version InputRemapper v2.2.0 or higher is required.
 
@@ -270,9 +387,15 @@ modify(KEY_LEFTCTRL, key(KEY_SPACE))
   * note that the "audio settings" key may already be mapped to `XF86Launch2`
 * pen buttons remapped as needed for your drawing software
 
+</details>
+
+
+---
 
 # Battery Life
 
+<details>
+<summary>Expand</summary>
 
 Using "Balanced" power mode (Gnome 47 / Fedora 41)
 ![battery plot](yoga-9i-2-in-1-battery-plot.png)
@@ -280,8 +403,15 @@ Using "Balanced" power mode (Gnome 47 / Fedora 41)
 Suspend test (Fedora 42, kernel 6.14.6)
 ![suspend battery plot](yoga-9i-2-in-1-suspend-battery-plot.png)
 
+</details>
+
+
+---
 
 # Troubleshooting Suspend
+
+<details>
+<summary>Expand</summary>
 
 Some distros may immediately wake from suspend. One cause is erroneous wake signals from the touchpad.
 
@@ -335,7 +465,15 @@ Some users report buggy bluetooth modules interfering with suspend, which might 
 
 (Credit: Lioncat6, https://github.com/johnmeade/linux-yoga-9i-2-in-1-aura/discussions/32)
 
+</details>
+
+
+---
+
 # Troubleshooting Audio
+
+<details>
+<summary>Expand</summary>
 
 Fedora kernels around 6.17.8-6.18.4 may have audio driver issues. Other distros may take longer to receive fixes.
 ([Related bug report](https://bugzilla.redhat.com/show_bug.cgi?id=2415785))
@@ -411,8 +549,15 @@ If you still encounter problems please run `alsa-info` and compare your output t
 
 http://alsa-project.org/db/?f=00aaa2b0024b2e1a9641d978f526ff44576577b6
 
+</details>
+
+
+---
 
 # Misc
+
+<details>
+<summary>Expand</summary>
 
 (April 24, 2025) There is currently a strange bug that crashes Gnome entirely, sending you back to the login screen. It seems to happen when:
 * you are in tablet mode with the on-screen keyboard open
@@ -421,3 +566,5 @@ http://alsa-project.org/db/?f=00aaa2b0024b2e1a9641d978f526ff44576577b6
 For example, saving a file within RNote with the on-screen keyboard open will likely cause a crash (your file should be saved correctly though).
 
 This is a complex interaction between Mutter/Wayland and Gnome, *possibly* related to GTK or other apps.
+
+</details>

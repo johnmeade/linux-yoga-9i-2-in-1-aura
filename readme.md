@@ -137,7 +137,7 @@ Main discussion started [in this repo](https://github.com/johnmeade/linux-yoga-9
 * BERT logs point to a general area of the xe driver code, but no clear bug can be found there.
 * Instead, a small xe driver patch workaround has been found, which seems to substantially decrease crashes for most.
 
-There are 2 main patches available in the GitLab issue, [v1](https://gitlab.freedesktop.org/drm/xe/kernel/-/work_items/7513#note_3430120) and [v2](https://gitlab.freedesktop.org/drm/xe/kernel/-/work_items/7513#note_3464216). In addition to these, I've created a hybrid patch (with AI assistance) combining both, which is perhaps the most defensive option. This is available as a file in this repo at `lnl-fix-hybrid.patch`. The codepaths in question are:
+There are 2 main patches available in the GitLab issue, [v1](https://gitlab.freedesktop.org/drm/xe/kernel/-/work_items/7513#note_3430120) and [v2](https://gitlab.freedesktop.org/drm/xe/kernel/-/work_items/7513#note_3464216). In addition to these, I've created a hybrid patch (with AI assistance) combining both, which is perhaps the most defensive option, but only v1 and v2 have been verified by other users. This is available as a file in this repo at `lnl-fix-hybrid.patch`. The codepaths in question are:
 
 |              Site               | v1  | v2  | hybrid |
 |---------------------------------|-----|-----|--------|
@@ -156,7 +156,16 @@ sudo dnf install gcc make bc openssl-devel elfutils-libelf-devel perl flex bison
 
 Download source from https://gitlab.freedesktop.org/drm/xe/kernel
 
-Commands below are run from the root directory.
+The rest of the commands are run from the root directory.
+
+Copy and apply one of the patches,
+
+```sh
+cp ~/Downloads/lnl-fix-XXX.patch .
+patch -p1 < lnl-fix-XXX.patch
+# or, `git apply lnl-fix-XXX.patch` if using git
+```
+
 
 ### First-time config setup
 

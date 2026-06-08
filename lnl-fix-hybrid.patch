@@ -1,0 +1,93 @@
+From: <your-name@your-domain>
+Date: Sat, 07 Jun 2026 00:00:00 +0000
+Subject: [PATCH v3] drm/xe/ggtt: Hold forcewake across all GGTT write and invalidation paths
+
+Extends the RC6/GSM-stall protection from v1 and v2 (Nikolay Mikhaylov)
+to the remaining unprotected paths. v1 covered insert_node_transform,
+__xe_ggtt_insert_bo_at, and xe_ggtt_invalidate; v2 replaced xe_ggtt_invalidate
+with xe_ggtt_clear (runtime unpin path). v3 unions all four sites, and
+replaces the XXX comment in xe_ggtt_invalidate with a clear explanation.
+
+Link: https://gitlab.freedesktop.org/drm/xe/kernel/-/work_items/7513
+---
+ drivers/gpu/drm/xe/xe_ggtt.c | 35 +++++++++++++++++++++++++----------
+ 1 file changed, 25 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/gpu/drm/xe/xe_ggtt.c b/drivers/gpu/drm/xe/xe_ggtt.c
+--- a/drivers/gpu/drm/xe/xe_ggtt.c
++++ b/drivers/gpu/drm/xe/xe_ggtt.c
+@@ -20,6 +20,8 @@
+ #include "regs/xe_regs.h"
+ #include "xe_assert.h"
+ #include "xe_bo.h"
++#include "xe_device.h"
++#include "xe_force_wake.h"
+ #include "xe_gt_printk.h"
+ #include "xe_gt_types.h"
+ #include "xe_map.h"
+@@ -272,9 +274,13 @@
+ 	else
+ 		scratch_pte = 0;
+
+-	while (start < end) {
+-		ggtt->pt_ops->ggtt_set_pte(ggtt, start, scratch_pte);
+-		start += XE_PAGE_SIZE;
++	/* GSM writes stall if the GT is in RC6; hold forcewake for the batch.
++	 * Covers both the runtime unpin path and boot-time initial clear. */
++	xe_with_force_wake(fw_ref, gt_to_fw(ggtt->tile->primary_gt), XE_FW_GT) {
++		while (start < end) {
++			ggtt->pt_ops->ggtt_set_pte(ggtt, start, scratch_pte);
++			start += XE_PAGE_SIZE;
++		}
+ 	}
+ }
+
+@@ -578,13 +584,11 @@
+ {
+ 	struct xe_device *xe = tile_to_xe(ggtt->tile);
+
+-	/*
+-	 * XXX: Barrier for GGTT pages. Unsure exactly why this required but
+-	 * without this LNL is having issues with the GuC reading scratch page
+-	 * vs. correct GGTT page. Not particularly a hot code path so blindly
+-	 * do a mmio read here which results in GuC reading correct GGTT page.
+-	 */
+-	xe_mmio_read32(xe_root_tile_mmio(xe), VF_CAP_REG);
++	/* MMIO read barrier: ensures GuC sees committed PTEs on LNL.
++	 * Hold forcewake so the read doesn't stall with GT in RC6. */
++	xe_with_force_wake(fw_ref, gt_to_fw(ggtt->tile->primary_gt), XE_FW_GT) {
++		xe_mmio_read32(xe_root_tile_mmio(xe), VF_CAP_REG);
++	}
+
+ 	/* Each GT in a tile has its own TLB to cache GGTT lookups */
+ 	ggtt_invalidate_gt_tlb(ggtt->tile->primary_gt);
+@@ -769,10 +773,14 @@
+ 	if (ret)
+ 		goto err_unlock;
+
+-	if (transform)
+-		transform(ggtt, node, pte_flags, ggtt->pt_ops->ggtt_set_pte, arg);
+-	else
+-		xe_ggtt_map_bo(ggtt, node, bo, pte_flags);
++	/* GSM writes stall if the GT is in RC6; GuC manages RC6 independently of
++	 * runtime PM, so xe_pm_runtime_get_noresume() upstack is not sufficient. */
++	xe_with_force_wake(fw_ref, gt_to_fw(ggtt->tile->primary_gt), XE_FW_GT) {
++		if (transform)
++			transform(ggtt, node, pte_flags, ggtt->pt_ops->ggtt_set_pte, arg);
++		else
++			xe_ggtt_map_bo(ggtt, node, bo, pte_flags);
++	}
+
+ 	mutex_unlock(&ggtt->lock);
+ 	return node;
+@@ -844,7 +852,10 @@
+ 		u16 pat_index = xe_cache_pat_idx(tile_to_xe(ggtt->tile), cache_mode);
+ 		u64 pte = ggtt->pt_ops->pte_encode_flags(bo, pat_index);
+
+-		xe_ggtt_map_bo(ggtt, bo->ggtt_node[tile_id], bo, pte);
++		/* Same RC6/GSM stall risk; see xe_ggtt_insert_node_transform(). */
++		xe_with_force_wake(fw_ref, gt_to_fw(ggtt->tile->primary_gt), XE_FW_GT) {
++			xe_ggtt_map_bo(ggtt, bo->ggtt_node[tile_id], bo, pte);
++		}
+ 	}
+ 	mutex_unlock(&ggtt->lock);

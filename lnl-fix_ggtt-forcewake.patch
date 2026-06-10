@@ -1,12 +1,11 @@
 From: <your-name@your-domain>
 Date: Sat, 07 Jun 2026 00:00:00 +0000
-Subject: [PATCH v3] drm/xe/ggtt: Hold forcewake across all GGTT write and invalidation paths
+Subject: [PATCH] drm/xe/ggtt: Hold forcewake across all GGTT write and invalidation paths
 
 Extends the RC6/GSM-stall protection from v1 and v2 (Nikolay Mikhaylov)
 to the remaining unprotected paths. v1 covered insert_node_transform,
 __xe_ggtt_insert_bo_at, and xe_ggtt_invalidate; v2 replaced xe_ggtt_invalidate
-with xe_ggtt_clear (runtime unpin path). v3 unions all four sites, and
-replaces the XXX comment in xe_ggtt_invalidate with a clear explanation.
+with xe_ggtt_clear (runtime unpin path). Unions all four sites.
 
 Link: https://gitlab.freedesktop.org/drm/xe/kernel/-/work_items/7513
 ---

@@ -1,0 +1,149 @@
+From: <your-name@your-domain>
+Date: Wed, 10 Jun 2026 00:00:00 +0000
+Subject: [PATCH] drm/xe: Prevent LNL platform hangs from CPU write batches to GSM and stolen
+
+Combined mitigation for the hard platform hangs on Lunar Lake under
+Wayland display load (crash in __xe_pin_fb_vma, BERT: fsm_state=0x10,
+"FORCEWAKE stuck at value 6"). Two write paths are affected, both CPU
+write batches to GPU-managed memory regions through the gunit frontend:
+
+1. GGTT PTE writes to GSM (xe_ggtt.c). writeq() batches stall if the GT
+   enters RC6 mid-batch; GuC manages RC6 autonomously via
+   GUCRC_FIRMWARE_CONTROL, so runtime PM protection upstack is not
+   sufficient. Hold forcewake across all PTE write batches and the
+   GGTT invalidation barrier read. Based on the v1 and v2 patches by
+   Nikolay Mikhaylov <sonny@milton.pro>, incorporating changes
+   originally proposed by Márton Vigh (@mrtnvgh).
+
+2. DPT programming writes to stolen memory (display/xe_fb_pin.c).
+   WA 22019338487_display indicates stolen memory should not be used
+   for display allocations on LNL. The fbdev path respected this; the
+   Display Page Table allocation did not, so DPT programming hammered
+   stolen on every tiled framebuffer pin. Skip the stolen allocation
+   when the WA applies and fall back to system memory. From a patch by
+   Matthew Auld <matthew.auld@intel.com>.
+   NOTE: copied from: https://lists.freedesktop.org/archives/intel-xe/2026-June/129115.html
+
+The two fixes are complementary: forcewake covers the GSM write
+batches, while the DPT change removes the unprotected CPU write batch
+to stolen that no forcewake wrap covers. Wayland is the common trigger
+because tiled+CCS client buffers exercise both paths on every pin.
+
+Link: https://gitlab.freedesktop.org/drm/xe/kernel/-/work_items/7513
+Link: https://lists.freedesktop.org/archives/intel-xe/2026-June/129115.html
+---
+ drivers/gpu/drm/xe/display/xe_fb_pin.c |  8 ++++++-
+ drivers/gpu/drm/xe/xe_ggtt.c           | 35 +++++++++++++++++++-------
+ 2 files changed, 33 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/gpu/drm/xe/display/xe_fb_pin.c b/drivers/gpu/drm/xe/display/xe_fb_pin.c
+--- a/drivers/gpu/drm/xe/display/xe_fb_pin.c
++++ b/drivers/gpu/drm/xe/display/xe_fb_pin.c
+@@ -17,6 +17,9 @@
+ #include "xe_pat.h"
+ #include "xe_pm.h"
+ #include "xe_vram_types.h"
++#include "xe_wa.h"
++
++#include <generated/xe_device_wa_oob.h>
+
+ static void
+ write_dpt_rotated(struct xe_bo *bo, struct iosys_map *map, u32 *dpt_ofs, u32 bo_ofs,
+@@ -169,7 +172,7 @@
+ 						   XE_BO_FLAG_GGTT |
+ 						   XE_BO_FLAG_PAGETABLE,
+ 						   pin_params->alignment, false);
+-	else
++	else if (!XE_DEVICE_WA(xe, 22019338487_display))
+ 		dpt = xe_bo_create_pin_map_at_novm(xe, tile0,
+ 						   dpt_size,  ~0ull,
+ 						   ttm_bo_type_kernel,
+@@ -177,6 +180,9 @@
+ 						   XE_BO_FLAG_GGTT |
+ 						   XE_BO_FLAG_PAGETABLE,
+ 						   pin_params->alignment, false);
++	else
++		dpt = ERR_PTR(-ENODEV);
++
+ 	if (IS_ERR(dpt))
+ 		dpt = xe_bo_create_pin_map_at_novm(xe, tile0,
+ 						   dpt_size,  ~0ull,
+
+diff --git a/drivers/gpu/drm/xe/xe_ggtt.c b/drivers/gpu/drm/xe/xe_ggtt.c
+--- a/drivers/gpu/drm/xe/xe_ggtt.c
++++ b/drivers/gpu/drm/xe/xe_ggtt.c
+@@ -20,6 +20,8 @@
+ #include "regs/xe_regs.h"
+ #include "xe_assert.h"
+ #include "xe_bo.h"
++#include "xe_device.h"
++#include "xe_force_wake.h"
+ #include "xe_gt_printk.h"
+ #include "xe_gt_types.h"
+ #include "xe_map.h"
+@@ -272,9 +274,13 @@
+ 	else
+ 		scratch_pte = 0;
+
+-	while (start < end) {
+-		ggtt->pt_ops->ggtt_set_pte(ggtt, start, scratch_pte);
+-		start += XE_PAGE_SIZE;
++	/* GSM writes stall if the GT is in RC6; hold forcewake for the batch.
++	 * Covers both the runtime unpin path and boot-time initial clear. */
++	xe_with_force_wake(fw_ref, gt_to_fw(ggtt->tile->primary_gt), XE_FW_GT) {
++		while (start < end) {
++			ggtt->pt_ops->ggtt_set_pte(ggtt, start, scratch_pte);
++			start += XE_PAGE_SIZE;
++		}
+ 	}
+ }
+
+@@ -578,13 +584,11 @@
+ {
+ 	struct xe_device *xe = tile_to_xe(ggtt->tile);
+
+-	/*
+-	 * XXX: Barrier for GGTT pages. Unsure exactly why this required but
+-	 * without this LNL is having issues with the GuC reading scratch page
+-	 * vs. correct GGTT page. Not particularly a hot code path so blindly
+-	 * do a mmio read here which results in GuC reading correct GGTT page.
+-	 */
+-	xe_mmio_read32(xe_root_tile_mmio(xe), VF_CAP_REG);
++	/* MMIO read barrier: ensures GuC sees committed PTEs on LNL.
++	 * Hold forcewake so the read doesn't stall with GT in RC6. */
++	xe_with_force_wake(fw_ref, gt_to_fw(ggtt->tile->primary_gt), XE_FW_GT) {
++		xe_mmio_read32(xe_root_tile_mmio(xe), VF_CAP_REG);
++	}
+
+ 	/* Each GT in a tile has its own TLB to cache GGTT lookups */
+ 	ggtt_invalidate_gt_tlb(ggtt->tile->primary_gt);
+@@ -769,10 +773,14 @@
+ 	if (ret)
+ 		goto err_unlock;
+
+-	if (transform)
+-		transform(ggtt, node, pte_flags, ggtt->pt_ops->ggtt_set_pte, arg);
+-	else
+-		xe_ggtt_map_bo(ggtt, node, bo, pte_flags);
++	/* GSM writes stall if the GT is in RC6; GuC manages RC6 independently of
++	 * runtime PM, so xe_pm_runtime_get_noresume() upstack is not sufficient. */
++	xe_with_force_wake(fw_ref, gt_to_fw(ggtt->tile->primary_gt), XE_FW_GT) {
++		if (transform)
++			transform(ggtt, node, pte_flags, ggtt->pt_ops->ggtt_set_pte, arg);
++		else
++			xe_ggtt_map_bo(ggtt, node, bo, pte_flags);
++	}
+
+ 	mutex_unlock(&ggtt->lock);
+ 	return node;
+@@ -844,7 +852,10 @@
+ 		u16 pat_index = xe_cache_pat_idx(tile_to_xe(ggtt->tile), cache_mode);
+ 		u64 pte = ggtt->pt_ops->pte_encode_flags(bo, pat_index);
+
+-		xe_ggtt_map_bo(ggtt, bo->ggtt_node[tile_id], bo, pte);
++		/* Same RC6/GSM stall risk; see xe_ggtt_insert_node_transform(). */
++		xe_with_force_wake(fw_ref, gt_to_fw(ggtt->tile->primary_gt), XE_FW_GT) {
++			xe_ggtt_map_bo(ggtt, bo->ggtt_node[tile_id], bo, pte);
++		}
+ 	}
+ 	mutex_unlock(&ggtt->lock);

@@ -1,0 +1,69 @@
+NOTE: below is copied from: https://lists.freedesktop.org/archives/intel-xe/2026-June/129115.html
+
+WA 22019338487 (22019338487_display) indicates that stolen memory should
+not be used for display allocations on affected platforms (like Lunar
+Lake).
+
+While the fbdev allocation in xe_display_bo.c properly respected this
+workaround, the Display Page Table (DPT) allocation in xe_fb_pin.c
+continued to unconditionally attempt to allocate from stolen memory on
+all integrated GPUs.
+
+Check XE_DEVICE_WA(xe, 22019338487_display) before attempting to
+allocate the DPT from stolen memory. If the workaround applies, skip the
+stolen allocation attempt and let the driver naturally fall back to
+allocating from system memory.
+
+Without this we will end up hammering stolen when programming the DPT on
+the host side during the normal operation, which seems to be exactly
+what the WA wants us to avoid.
+
+There are a bunch of users all getting some kind of hard hang in the fb
+pin programming sequence on LNL, so wondering if this could help there.
+
+Assisted-by: Gemini:gemini-3.1-pro-preview
+Link: https://gitlab.freedesktop.org/drm/xe/kernel/-/work_items/7513
+Signed-off-by: Matthew Auld <matthew.auld at intel.com>
+Fixes: 775d0adc01a5 ("drm/xe/fbdev: Limit the usage of stolen for LNL+")
+Cc: "Thomas Hellström" <thomas.hellstrom at linux.intel.com>
+Cc: Matthew Brost <matthew.brost at intel.com>
+Cc: Rodrigo Vivi <rodrigo.vivi at intel.com>
+Cc: Uma Shankar <uma.shankar at intel.com>
+Cc: Nikolay Mikhaylov <sonny at milton.pro>
+Cc: <stable at vger.kernel.org> # v6.12+
+---
+ drivers/gpu/drm/xe/display/xe_fb_pin.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/xe/display/xe_fb_pin.c b/drivers/gpu/drm/xe/display/xe_fb_pin.c
+--- a/drivers/gpu/drm/xe/display/xe_fb_pin.c
++++ b/drivers/gpu/drm/xe/display/xe_fb_pin.c
+@@ -17,6 +17,9 @@
+ #include "xe_pat.h"
+ #include "xe_pm.h"
+ #include "xe_vram_types.h"
++#include "xe_wa.h"
++
++#include <generated/xe_device_wa_oob.h>
+
+ static void
+ write_dpt_rotated(struct xe_bo *bo, struct iosys_map *map, u32 *dpt_ofs, u32 bo_ofs,
+@@ -169,7 +172,7 @@
+ 						   XE_BO_FLAG_GGTT |
+ 						   XE_BO_FLAG_PAGETABLE,
+ 						   pin_params->alignment, false);
+-	else
++	else if (!XE_DEVICE_WA(xe, 22019338487_display))
+ 		dpt = xe_bo_create_pin_map_at_novm(xe, tile0,
+ 						   dpt_size,  ~0ull,
+ 						   ttm_bo_type_kernel,
+@@ -177,6 +180,9 @@
+ 						   XE_BO_FLAG_GGTT |
+ 						   XE_BO_FLAG_PAGETABLE,
+ 						   pin_params->alignment, false);
++	else
++		dpt = ERR_PTR(-ENODEV);
++
+ 	if (IS_ERR(dpt))
+ 		dpt = xe_bo_create_pin_map_at_novm(xe, tile0,
+ 						   dpt_size,  ~0ull,

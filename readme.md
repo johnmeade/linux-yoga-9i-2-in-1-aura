@@ -135,16 +135,24 @@ Main discussion started [in this repo](https://github.com/johnmeade/linux-yoga-9
 * The crash is sudden, so error details do not make it to the kernel logs.
 * They can be extracted from deeper within the system via BERT logs.
 * BERT logs point to a general area of the xe driver code, but no clear bug can be found there.
-* Instead, a small xe driver patch workaround has been found, which seems to substantially decrease crashes for most.
+* Instead, xe driver workarounds have been found, which seem to substantially decrease crashes for most.
 
-There are 2 main patches available in the GitLab issue, [v1](https://gitlab.freedesktop.org/drm/xe/kernel/-/work_items/7513#note_3430120) and [v2](https://gitlab.freedesktop.org/drm/xe/kernel/-/work_items/7513#note_3464216). In addition to these, I've created a hybrid patch (with AI assistance) combining both, which is perhaps the most defensive option, but only v1 and v2 have been verified by other users. This is available as a file in this repo at `lnl-fix-hybrid.patch`. The codepaths in question are:
+There were 2 original patches developed in the GitLab issue, [v1](https://gitlab.freedesktop.org/drm/xe/kernel/-/work_items/7513#note_3430120) and [v2](https://gitlab.freedesktop.org/drm/xe/kernel/-/work_items/7513#note_3464216), which adds some forcewake logic to some write calls (`ggtt-forcewake` tag). Credit: Nikolay Mikhaylov `<sonny@milton.pro>`, Márton Vigh (`@mrtnvgh`), and others.
 
-|              Site               | v1  | v2  | hybrid |
-|---------------------------------|-----|-----|--------|
-| xe_ggtt_insert_node_transform() | ✔️  | ✔️  | ✔️     |
-| __xe_ggtt_insert_bo_at()        | ✔️  | ✔️  | ✔️     |
-| xe_ggtt_clear()                 | ✖️  | ✔️  | ✔️     |
-| xe_ggtt_invalidate()            | ✔️  | ✖️  | ✔️     |
+Following this, [another patch](https://lists.freedesktop.org/archives/intel-xe/2026-June/129115.html) was proposed by Matthew Auld `<matthew.auld@intel.com>`, which changes some internal memory usage code (`dpt-no-stolen` tag).
+
+In the project root I've added each of these fix paths, along with a combined one, for testing:
+
+```
+# All known patches, most defensive option
+lnl-fix_ggtt-forcewake_dpt-no-stolen.patch
+
+# Older patch, significantly increases system stability, but may not fix all crashes
+lnl-fix_ggtt-forcewake.patch
+
+# Newer patch under evaluation
+lnl-fix_dpt-no-stolen.patch
+```
 
 Instructions for patching and installing on Fedora (tested on `7.1.0-rc2`, open an issue if the patch breaks):
 
@@ -161,9 +169,9 @@ The rest of the commands are run from the root directory.
 Copy and apply one of the patches,
 
 ```sh
-cp ~/Downloads/lnl-fix-XXX.patch .
-patch -p1 < lnl-fix-XXX.patch
-# or, `git apply lnl-fix-XXX.patch` if using git
+cp ~/Downloads/lnl-fix_XXX.patch .
+patch -p1 < lnl-fix_XXX.patch
+# or, `git apply lnl-fix_XXX.patch` if using git
 ```
 
 
@@ -172,7 +180,7 @@ patch -p1 < lnl-fix-XXX.patch
 ```bash
 cp /boot/config-$(uname -r) .config
 make olddefconfig
-scripts/config --set-str LOCALVERSION "-xe-lnl-fw-fix"
+scripts/config --set-str LOCALVERSION "-xe-lnl-fix"  # set different tags here for testing multiple patches
 scripts/config --disable DEBUG_INFO   # optional: faster build
 ```
 

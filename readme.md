@@ -145,16 +145,18 @@ In the project root I've added each of these fix paths, along with a combined on
 
 ```
 # All known patches, most defensive option
-lnl-fix_ggtt-forcewake_dpt-no-stolen.patch
+lnl-fix_ggtt-forcewake_dpt-no-stolen_7.1.0-rc5.patch
 
 # Older patch, significantly increases system stability, but may not fix all crashes
+# (untested after 7.1.0-rc2)
 lnl-fix_ggtt-forcewake.patch
 
-# Newer patch under evaluation
+# Newer patch under evaluation, also increases stability
+# (untested after 7.1.0-rc2)
 lnl-fix_dpt-no-stolen.patch
 ```
 
-Instructions for patching and installing on Fedora (tested on `7.1.0-rc2`, open an issue if the patch breaks):
+Instructions for patching and installing on Fedora (patches provided for `7.1.0-rc2` and `rc5`, open an issue if the patch breaks):
 
 ### Prerequisites
 

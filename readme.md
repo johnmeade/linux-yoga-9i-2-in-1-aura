@@ -5,31 +5,33 @@ Please read the issues for more details, and report any issues or inconsistencie
 
 Caveats:
 * There is a full system freeze issue that can happen, which requires a reboot.
+  * **Intel and Xe engineers have created a patch, which is in review for upstream merge!**
   * It's mostly seen under high load or shortly after wake-up.
   * It's pretty rare under light-to-medium load.
   * The root cause is still unknown, or at least un-confirmed.
-  * There has been some progress on debugging this, and there is a kernel patch that seems to significantly reduce the frequency of the issue for many users (see [Potential Crash Fix](#crash-fix)).
-* Some distros, or newer hardware configurations for this line of laptops, seem to experience more issues, like
+  * To apply experimental patches which seem to fix the issue for many users (no crashes reported yet) without waiting for upstream, see [Potential Crash Fix](#crash-fix).
+* Some distros, or newer hardware configurations for this line of laptops, seem to experience more issues. Find related sections below for these topics:
   * Bluetooth issues
   * ISH firmware issues
-  * Audio driver issues (some may be realted to an old kernel regression around Nov 2025, which was fixed around Jan 2026)
+  * Audio driver issues
 * CPU cores can get stuck in their low-power 400MHz state for 1-2 minutes after waking from a long suspend
   * This has always been temporary for me, and I haven't noticed many complaints about this, but [reports](https://www.phoronix.com/review/lunarlake-xe2-windows-linux-2025) from similar models (like the X1 Carbon Aura) suggest it's possible they remain stuck unless you switch to the "Performance" power mode (ie in Gnome settings).
+  * Potential mitigation is to enable Performance mode for a few minutes.
 
 ---
 
 # Setup
 
 Required Steps (Fedora 43):
-* Disable wake events from the touchpad ("Troubleshooting Suspend" section below).
+* Disable wake events from the touchpad or other erronious sources ("Troubleshooting Suspend" section below).
 * Install ISH firmware for correct behaviour when rotating into tent / tablet mode ("ISH Workaround" section below).
 
 Recommended Steps:
-* Install InputRemapper to make the copilot key useful.
+* Install InputRemapper to make the copilot key useful ("Key Remapping" section below).
 * Check out the [Potential Crash Fix](#crash-fix) section and consider testing it out.
 * (Temporary note June 2026) There is a fixable regression in mutter (Gnome Wayland) that causes some glitchy pen cursor behaviour in tablet mode.
   * a patch is known but not in main branch yet, this will probably take several weeks to upstream and roll out.
-  * fix with instructions for Fedora: https://gitlab.gnome.org/GNOME/mutter/-/work_items/4678#note_2770867
+  * workaround patch with instructions for Fedora: https://gitlab.gnome.org/GNOME/mutter/-/work_items/4678#note_2770867
 
 If your distro uses old packages / kernels / firmware, you may run into issues with audio, bluetooth, or other components.
 

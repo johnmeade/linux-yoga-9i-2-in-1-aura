@@ -137,28 +137,18 @@ Main discussion started [in this repo](https://github.com/johnmeade/linux-yoga-9
 * The crash is sudden, so error details do not make it to the kernel logs.
 * They can be extracted from deeper within the system via BERT logs.
 * BERT logs point to a general area of the xe driver code, but no clear bug can be found there.
-* Instead, xe driver workarounds have been found, which seem to substantially decrease crashes for most.
+* Some early workarounds were found, which seem to substantially decrease crashes for most, considered deprecated now.
+* Intel / Xe engineers are now working on a patch series for the root cause.
 
-There were 2 original patches developed in the GitLab issue, [v1](https://gitlab.freedesktop.org/drm/xe/kernel/-/work_items/7513#note_3430120) and [v2](https://gitlab.freedesktop.org/drm/xe/kernel/-/work_items/7513#note_3464216), which adds some forcewake logic to some write calls (`ggtt-forcewake` tag). Credit: Nikolay Mikhaylov `<sonny@milton.pro>`, Márton Vigh (`@mrtnvgh`), and others.
+The 2 original workaround patches developed in the GitLab issue, [v1](https://gitlab.freedesktop.org/drm/xe/kernel/-/work_items/7513#note_3430120) and [v2](https://gitlab.freedesktop.org/drm/xe/kernel/-/work_items/7513#note_3464216), add forcewake logic to some write calls (`ggtt-forcewake` tag). Credit: Nikolay Mikhaylov `<sonny@milton.pro>`, Márton Vigh (`@mrtnvgh`), and others.
 
 Following this, [another patch](https://lists.freedesktop.org/archives/intel-xe/2026-June/129115.html) was proposed by Matthew Auld `<matthew.auld@intel.com>`, which changes some internal memory usage code (`dpt-no-stolen` tag).
 
-In the project root I've added each of these fix paths, along with a combined one, for testing:
+And now, there is an upstream patch series being worked on, [here](https://patchwork.freedesktop.org/series/169514/). There are few user reports on the stability of this, but it's tackling a root cause and it's coming from Intel / Xe engineers, so it's the recommended fix.
 
-```
-# All known patches, most defensive option
-lnl-fix_ggtt-forcewake_dpt-no-stolen_7.1.0-rc5.patch
+The historical workaround patches are in the `deprecated/` folder. To get the WIP upstream patch, click the `mbox patches` link for the latest revision in the link above.
 
-# Older patch, significantly increases system stability, but may not fix all crashes
-# (untested after 7.1.0-rc2)
-lnl-fix_ggtt-forcewake.patch
-
-# Newer patch under evaluation, also increases stability
-# (untested after 7.1.0-rc2)
-lnl-fix_dpt-no-stolen.patch
-```
-
-Instructions for patching and installing on Fedora (patches provided for `7.1.0-rc2` and `rc5`, open an issue if the patch breaks):
+Instructions for patching and installing on Fedora (tested on 7.1.0-rc5):
 
 ### Prerequisites
 
@@ -170,12 +160,15 @@ Download source from https://gitlab.freedesktop.org/drm/xe/kernel
 
 The rest of the commands are run from the root directory.
 
-Copy and apply one of the patches,
+Apply one of the patches,
 
 ```sh
-cp ~/Downloads/lnl-fix_XXX.patch .
-patch -p1 < lnl-fix_XXX.patch
-# or, `git apply lnl-fix_XXX.patch` if using git
+git apply fix.mbox
+# same for patch files,
+#   git apply fix.patch
+# without git,
+#   patch -p1 < fix.mbox
+#   patch -p1 < fix.patch
 ```
 
 
@@ -226,12 +219,12 @@ sudo grub2-mkconfig -o /boot/grub2/grub.cfg
 sudo reboot
 ```
 
-Select `[...]-xe-lnl-fw-fix` in the GRUB menu. It may be pre-selected if it's the most recently installed kernel.
+Select `[...]-xe-lnl-fix` in the GRUB menu. It may be pre-selected if it's the most recently installed kernel.
 
 ### Verify
 
 ```bash
-uname -r   # should print [...]-xe-lnl-fw-fix
+uname -r   # should print [...]-xe-lnl-fix
 ```
 
 </details>

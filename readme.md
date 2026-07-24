@@ -156,7 +156,13 @@ Instructions for patching and installing on Fedora (tested on 7.1.0-rc5):
 sudo dnf install gcc make bc openssl-devel elfutils-libelf-devel perl flex bison dwarves
 ```
 
-Download source from https://gitlab.freedesktop.org/drm/xe/kernel
+Download source from https://gitlab.freedesktop.org/drm/xe/kernel or mainline, eg
+
+```sh
+git clone --recurse-submodules git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git kernel-mainline
+cd kernel-mainline
+git checkout v7.1.4
+```
 
 The rest of the commands are run from the root directory.
 

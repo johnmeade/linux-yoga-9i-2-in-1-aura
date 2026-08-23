@@ -4,36 +4,14 @@ There may be slight hardware differences over time for the same model code / SKU
 Please read the issues for more details, and report any issues or inconsistencies you find.
 
 Caveats:
-* There is a full system freeze issue that can happen, which requires a reboot.
-  * **Intel and Xe engineers have created a patch, which is in review for upstream merge!**
-  * It's mostly seen under high load or shortly after wake-up.
-  * It's pretty rare under light-to-medium load.
-  * The root cause is still unknown, or at least un-confirmed.
-  * To apply experimental patches which seem to fix the issue for many users (no crashes reported yet) without waiting for upstream, see [Potential Crash Fix](#crash-fix).
-* Some distros, or newer hardware configurations for this line of laptops, seem to experience more issues. Find related sections below for these topics:
-  * Bluetooth issues
-  * ISH firmware issues
-  * Audio driver issues
+* Distros using old firmware / kernels can experience a variety of issues,
+  * full system freeze under certain GPU loads
+  * Bluetooth
+  * Audio driver
+* Newer hardware configurations may experience issues not covered here
 * CPU cores can get stuck in their low-power 400MHz state for 1-2 minutes after waking from a long suspend
   * This has always been temporary for me, and I haven't noticed many complaints about this, but [reports](https://www.phoronix.com/review/lunarlake-xe2-windows-linux-2025) from similar models (like the X1 Carbon Aura) suggest it's possible they remain stuck unless you switch to the "Performance" power mode (ie in Gnome settings).
   * Potential mitigation is to enable Performance mode for a few minutes.
-
----
-
-# Setup
-
-Required Steps (Fedora 43):
-* Disable wake events from the touchpad or other erronious sources ("Troubleshooting Suspend" section below).
-* Install ISH firmware for correct behaviour when rotating into tent / tablet mode ("ISH Workaround" section below).
-
-Recommended Steps:
-* Install InputRemapper to make the copilot key useful ("Key Remapping" section below).
-* Check out the [Potential Crash Fix](#crash-fix) section and consider testing it out.
-* (Temporary note June 2026) There is a fixable regression in mutter (Gnome Wayland) that causes some glitchy pen cursor behaviour in tablet mode.
-  * a patch is known but not in main branch yet, this will probably take several weeks to upstream and roll out.
-  * workaround patch with instructions for Fedora: https://gitlab.gnome.org/GNOME/mutter/-/work_items/4678#note_2770867
-
-If your distro uses old packages / kernels / firmware, you may run into issues with audio, bluetooth, or other components.
 
 If you have an issue, take a look around this page and the issue tracker first, and then report any issues you would like help with.
 
@@ -41,6 +19,20 @@ There is also a discussion section for asking questions, posting fixes, etc.
 
 
 ---
+
+
+# Setup
+
+Required Steps (Fedora 43-44):
+* Disable wake events from the touchpad or other erronious sources ("Troubleshooting Suspend" section below).
+* Install ISH firmware for correct behaviour when rotating into tent / tablet mode ("ISH Workaround" section below).
+
+Recommended Steps:
+* Install InputRemapper to make the copilot key useful ("Key Remapping" section below).
+
+
+---
+
 
 # Feature Support Table
 
@@ -87,7 +79,6 @@ Most testing below was done on Fedora 41 & 42.
 ❗ Other issues:
 * When waking from a long suspend, sometimes there is temporary lag for around 1 minute
   * If the issue persists longer than this, or you want a fast fix, see `Laggy CPU Cores on Wakeup Workaround` below
-* There is a full system freeze issue that can happen, typically on wake-up or under high CPU+GPU load, which requires a hard reboot.
 
 ❓ Untested:
 * headphone jack mic input (probably fine?)
@@ -98,6 +89,7 @@ Most testing below was done on Fedora 41 & 42.
 
 
 ---
+
 
 # Laggy CPU Cores on Wakeup Workaround
 
@@ -123,121 +115,27 @@ done
 
 ---
 
+
 <h1 id="crash-fix">
-Potential Crash Fix
+Hard Crash Fix
 </h1>
 
 <details>
 <summary>Expand</summary>
 
-This is a potential fix for the sudden system freeze / crash issue.
+This is a fix for the "sudden system freeze / crash" issue, which was merged in mainline kernel 7.2 / Fedora kernel 7.1.9-200.
 
-Main discussion started [in this repo](https://github.com/johnmeade/linux-yoga-9i-2-in-1-aura/issues/20#issuecomment-4409617543) and continued in [the xe repo](https://gitlab.freedesktop.org/drm/xe/kernel/-/work_items/7513), which will be summarized below.
+The upstream patch series related to this is [here](https://patchwork.freedesktop.org/series/169514/),
 
-* The crash is sudden, so error details do not make it to the kernel logs.
-* They can be extracted from deeper within the system via BERT logs.
-* BERT logs point to a general area of the xe driver code, but no clear bug can be found there.
-* Some early workarounds were found, which seem to substantially decrease crashes for most, considered deprecated now.
-* Intel / Xe engineers are now working on a patch series for the root cause.
+> Using stolen memory has effect on system stability on integrated at high load, and causes increased latency waking up from media C6 state. Only use stolen memory when needed, which is for GSC firmware and FBC.
 
-The 2 original workaround patches developed in the GitLab issue, [v1](https://gitlab.freedesktop.org/drm/xe/kernel/-/work_items/7513#note_3430120) and [v2](https://gitlab.freedesktop.org/drm/xe/kernel/-/work_items/7513#note_3464216), add forcewake logic to some write calls (`ggtt-forcewake` tag). Credit: Nikolay Mikhaylov `<sonny@milton.pro>`, Márton Vigh (`@mrtnvgh`), and others.
-
-Following this, [another patch](https://lists.freedesktop.org/archives/intel-xe/2026-June/129115.html) was proposed by Matthew Auld `<matthew.auld@intel.com>`, which changes some internal memory usage code (`dpt-no-stolen` tag).
-
-And now, there is an upstream patch series being worked on, [here](https://patchwork.freedesktop.org/series/169514/). There are few user reports on the stability of this, but it's tackling a root cause and it's coming from Intel / Xe engineers, so it's the recommended fix.
-
-The historical workaround patches are in the `deprecated/` folder. To get the WIP upstream patch, click the `mbox patches` link for the latest revision in the link above.
-
-Instructions for patching and installing on Fedora (tested on 7.1.0-rc5):
-
-### Prerequisites
-
-```bash
-sudo dnf install gcc make bc openssl-devel elfutils-libelf-devel perl flex bison dwarves
-```
-
-Download source from https://gitlab.freedesktop.org/drm/xe/kernel or mainline, eg
-
-```sh
-git clone --recurse-submodules git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git kernel-mainline
-cd kernel-mainline
-git checkout v7.1.4
-```
-
-The rest of the commands are run from the root directory.
-
-Apply one of the patches,
-
-```sh
-git apply fix.mbox
-# same for patch files,
-#   git apply fix.patch
-# without git,
-#   patch -p1 < fix.mbox
-#   patch -p1 < fix.patch
-```
-
-
-### First-time config setup
-
-```bash
-cp /boot/config-$(uname -r) .config
-make olddefconfig
-scripts/config --set-str LOCALVERSION "-xe-lnl-fix"  # set different tags here for testing multiple patches
-scripts/config --disable DEBUG_INFO   # optional: faster build
-```
-
-### Build
-
-```bash
-make -j$(nproc) 2>&1 | tee build.log
-```
-
-### Install
-
-```bash
-sudo make modules_install
-sudo make install
-```
-
-`make install` updates GRUB automatically.
-
-### Secure Boot
-
-Custom kernels are rejected at boot if Secure Boot is enabled. Disable it in
-BIOS/UEFI settings before rebooting. Stock Fedora kernels are unaffected and
-will continue to work after re-enabling Secure Boot.
-
-### GRUB
-
-You can run this to ensure the GRUB menu is shown on boot for explicit kernel selection,
-
-```sh
-sudo sed -i 's/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=10/' /etc/default/grub
-sudo sed -i 's/^GRUB_TIMEOUT_STYLE=.*/GRUB_TIMEOUT_STYLE=menu/' /etc/default/grub
-sudo grub2-editenv - unset menu_auto_hide
-sudo grub2-mkconfig -o /boot/grub2/grub.cfg
-```
-
-### Reboot
-
-```bash
-sudo reboot
-```
-
-Select `[...]-xe-lnl-fix` in the GRUB menu. It may be pre-selected if it's the most recently installed kernel.
-
-### Verify
-
-```bash
-uname -r   # should print [...]-xe-lnl-fix
-```
+If you can't run a modern kernel, you will have to backport the fix and compile a new kernel.
 
 </details>
 
 
-
 ---
+
 
 # ISH Workaround (auto-rotate, disabling keyboard/mouse, "tent" mode)
 
@@ -318,7 +216,7 @@ and replace `/lib/firmware/intel/ish/ish_lnlm.bin.zst` instead of `/lib/firmware
 <details>
 <summary>Expand</summary>
 
-If you have bluetooth issues, run this:
+If you have bluetooth issues on older kernels, run this:
 
 ```sh
 sudo dmesg | grep -i bluetooth
@@ -369,6 +267,7 @@ It may block suspend (see the Bluetooth section of the `Troubleshooting Suspend`
 
 
 ---
+
 
 # Key Remapping
 
@@ -424,6 +323,7 @@ modify(KEY_LEFTCTRL, key(KEY_SPACE))
 
 
 ---
+
 
 # Battery Life
 

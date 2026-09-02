@@ -4,14 +4,15 @@ There may be slight hardware differences over time for the same model code / SKU
 Please read the issues for more details, and report any issues or inconsistencies you find.
 
 Caveats:
+* Hard crash issues have been greatly mitigated as of kernel 7.2, and potentially fixed as of kernel 7.3
 * Distros using old firmware / kernels can experience a variety of issues,
   * full system freeze under certain GPU loads
   * Bluetooth
   * Audio driver
-* Newer hardware configurations may experience issues not covered here
 * CPU cores can get stuck in their low-power 400MHz state for 1-2 minutes after waking from a long suspend
   * This has always been temporary for me, and I haven't noticed many complaints about this, but [reports](https://www.phoronix.com/review/lunarlake-xe2-windows-linux-2025) from similar models (like the X1 Carbon Aura) suggest it's possible they remain stuck unless you switch to the "Performance" power mode (ie in Gnome settings).
   * Potential mitigation is to enable Performance mode for a few minutes.
+* Newer hardware configurations may experience issues not covered here
 
 If you have an issue, take a look around this page and the issue tracker first, and then report any issues you would like help with.
 
@@ -28,7 +29,13 @@ Required Steps (Fedora 43-44):
 * Install ISH firmware for correct behaviour when rotating into tent / tablet mode ("ISH Workaround" section below).
 
 Recommended Steps:
-* Install InputRemapper to make the copilot key useful ("Key Remapping" section below).
+* Key Remapping
+  * Copilot key: by default, this emits `LEFTMETA+LEFTSHIFT+F23`. If you just want to use this as a launcher, no additional fixes are needed. If you want it to be remapped to another key, like Control,
+    * Use either InputRemapper ("Key Remapping > InputRemapper" section below), or
+    * A custom service that is easy to audit for security ("Key Remapping > Custom Service")
+  * `Fn+F9` and `Fn+F11` emit `unknown` with different scancodes: these can be individually remapped using a custom service, See "Key Remapping > Custom Service" section below
+  * Performance-mode key should work, but it is difficult to remap or disable
+  * Audio settings, eyeball, and star should all work as launchers
 
 
 ---
@@ -63,7 +70,9 @@ Most testing below was done on Fedora 41 & 42.
   * some old `linux-firmware` packages may have misconfigured bluetooth firmware for some Lunar Lake chipsets, see "Bluetooth Fix" below if you have an issue.
 * suspend
   * some distros may wake immediately due to touchpad wake events, easy to fix, see "Troubleshooting Suspend" section below
-* the copilot key is recognised as a bizzare key macro, but can be remapped (for example, to Right Ctrl) using the Input Remapper software (see "Key Remapping" below) on 6.14 (remapping untested on 6.13 or earlier).
+* keys
+  * the copilot key emits `LEFTMETA+LEFTSHIFT+F23`, but can be remapped (for example, to Control), see "Key Remapping" section below.
+  * the `Fn+F9` and `Fn+F11` keys emit `unknown` with different scancodes, so these can be individually remapped. See "Key Remapping > Custom Service" section below.
 * gyro / accelerometer  (auto-rotate, disabling keyboard/mouse, "tent" mode)
   * firmware files must be manually copied from a Windows installation or ISH driver, see "ISH Workaround" below
 
@@ -71,10 +80,6 @@ Most testing below was done on Fedora 41 & 42.
 * most "special" keys on keyboard
   * the power mode key (top right below "delete") works as expected in Fedora -- this may be distro / desktop dependent
   * the audio settings key, eyeball key, and hollow star key on the right should be usable out-of-the-box on recent distros (they are mapped to generic launcher keys in Fedora 43)
-
-⚠️ Partially working
-* some "special" keys on keyboard may emit keycode 240 "KEY_UNKNOWN" (Fn+F9 and Fn+F11 do this on Fedora 43)
-  * these can only partially be used (see "Key Remapping" below), and they likely overlap with each other, so you cannot map different functions to each special key independently.
 
 ❗ Other issues:
 * When waking from a long suspend, sometimes there is temporary lag for around 1 minute
@@ -272,7 +277,7 @@ It may block suspend (see the Bluetooth section of the `Troubleshooting Suspend`
 # Key Remapping
 
 <details>
-<summary>Expand</summary>
+<summary>InputRemapper</summary>
 
 NOTE: if your distro uses Python 3.14, version InputRemapper v2.2.0 or higher is required.
 
@@ -314,13 +319,38 @@ modify(KEY_LEFTCTRL, key(KEY_SPACE))
 ### Suggested setup
 
 * copilot key remapped to `KEY_RIGHTCTRL` (works as a normal key, ie with distinct keyup / keydown events)
-* unknown keys remapped to `XF86Launch1`, `XF86Launch3`, etc as generic app launchers
+* other keys remapped to `XF86Launch1`, `XF86Launch3`, etc as generic app launchers
   * which keys can be mapped independently may be distro / kernel dependent
-  * note that the "audio settings" key may already be mapped to `XF86Launch2`
+  * note that some keys like the "audio settings" key may already be mapped to `XF86Launch2` etc
 * pen buttons remapped as needed for your drawing software
 
 </details>
 
+
+<details>
+<summary>Custom Service</summary>
+
+The Copilot key emits `LEFTMETA+LEFTSHIFT+F23`, and `Fn+F9` / `Fn+F11` emit `unknown` with different scancodes.
+
+To remap copilot and fix the F-keys, you can grab events and re-emit them. This is exactly what a keylogger would do, so you may wish to avoid apps like InputRemapper for security reasons. Also, InputRemapper does not seem able to remap the F-keys individually.
+
+So, a minimal readable fix implementation is provided in `yoga-key-remap-service/`.
+
+The install script:
+* adds your user to the `input` group
+* copies an `evdev` python script to `~/.local/bin`
+* adds and enables a systemd service that runs the script as a daemon
+
+By default, it:
+* maps the copilot key to right-control
+* maps `Fn+F9` to `F16` (shows up as `XF86Launch7` in GNOME)
+* maps `Fn+F11` to `F17` (shows up as `XF86Launch8` in GNOME)
+
+You can easily edit the keys they bind to.
+
+</details>
+
+Misc: a `install-gnome-alt-rebind.sh` script is provided to remap right-alt to left-alt using a built-in Gnome feature.
 
 ---
 

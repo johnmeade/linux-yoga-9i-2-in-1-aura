@@ -1,0 +1,9 @@
+[Unit]
+Description=Yoga key remap service (Copilot key combo, Ideapad extra buttons)
+
+[Service]
+ExecStart=%h/.local/bin/yoga-key-remap-service
+Restart=on-failure
+
+[Install]
+WantedBy=default.target

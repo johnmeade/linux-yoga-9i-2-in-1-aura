@@ -276,6 +276,9 @@ It may block suspend (see the Bluetooth section of the `Troubleshooting Suspend`
 
 # Key Remapping
 
+Caveat (applies to all solutions): while the copilot key is held, real presses of `Left Shift` or `Left Meta` are swallowed rather than forwarded, since the keyboard emits identical scancodes for those keys whether they're standalone or part of the copilot combo, so there's no way to tell them apart.
+So, `Copilot+Shift` or `Copilot+Meta` chords don't work; other keys (`Copilot+C`, `Copilot+V`, etc.) are unaffected.
+
 <details>
 <summary>InputRemapper</summary>
 

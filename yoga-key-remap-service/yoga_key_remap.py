@@ -8,6 +8,12 @@
 
 Grabs both physical devices exclusively and re-emits everything (unmodified,
 except for the two remaps above) through one virtual uinput device.
+
+Caveat: while the copilot combo is held, real presses of Left Shift or Left
+Meta are swallowed rather than forwarded, since the keyboard emits identical
+scancodes for those keys whether they're standalone or part of the combo -
+there's no way to tell them apart. So Copilot+Shift or Copilot+Meta chords
+don't work; other keys (Copilot+C, Copilot+V, etc.) are unaffected.
 """
 import select
 import time
@@ -58,13 +64,16 @@ class ComboRemap:
         code, value = event.code, event.value
 
         if self.active:
-            if code in COMBO and value == 0:
-                self.pending_keys.discard(code)
-                if not self.pending_keys:
-                    self.ui.write(e.EV_KEY, COMBO_TARGET, 0)
-                    self.ui.syn()
-                    self.active = False
-            return  # swallow all combo-key traffic while active
+            if code in COMBO:
+                if value == 0:
+                    self.pending_keys.discard(code)
+                    if not self.pending_keys:
+                        self.ui.write(e.EV_KEY, COMBO_TARGET, 0)
+                        self.ui.syn()
+                        self.active = False
+                return  # swallow combo-key traffic while active
+            self.ui.write_event(event)  # pass through other keys, e.g. Ctrl+A
+            return
 
         if code in COMBO and value == 1 and code not in self.pending_keys:
             self.pending.append(event)
